@@ -1,5 +1,7 @@
 #include <thread>
 #include <chrono>
+#include <utility>
+#include <iomanip>
 #include <string>
 #include <fstream>
 #include <unistd.h>
@@ -8,6 +10,8 @@
 #include <sys/wait.h>
 #include <sys/resource.h>
 #include <sys/types.h>
+#include <grp.h>
+#include <signal.h>
 
 #include "common.h"
 
@@ -54,8 +58,8 @@ struct config {
     std::vector<std::string> env{};
     std::string log_path{"judger_log.txt"};
     std::string seccomp_rule_name;
-    int32_t     uid{65534};
-    int32_t     gid{65534};
+    uint32_t     uid{65534};
+    uint32_t     gid{65534};
 } CONFIG;
 
 
@@ -80,12 +84,27 @@ struct result {
 } RESULT;
 
 // ==================== utils
-template<typename... Args>
+template<char Delimiter = ' ',typename... Args>
 void debug_out(std::ostream &os, Args&&... args){
-    // TODO 每个东西用空格隔开
-    // pos << ... << args
-    ( (os << args << ' '),... ) <<std::endl;
+    ( (os << args << Delimiter),... ) <<std::endl;
 }
+
+#ifdef DEBUG
+//#define __print_result(node) debug_out<'\0'>(std::cout,#node ":","\t\t",RESULT.node)
+#define __print_result(node) std::cout << std::setw(12) << #node ": " << RESULT.node <<'\n';
+
+#else
+#define __print_result(node) debug_out(std::cout,RESULT.node)
+#endif
+
+#define print_result()\
+    __print_result(cpu_time);\
+    __print_result(real_time);\
+    __print_result(memory);\
+    __print_result(signal);\
+    __print_result(exit_code);\
+    __print_result(error);\
+    __print_result(result);
 
 //TODO log
 struct LOG {
@@ -111,25 +130,140 @@ struct LOG {
 #define log_waring(...)    log_write("[WARNING]",__VA_ARGS__)
 #define log_fatal(...)     log_write("[FATAL]",__VA_ARGS__)
 #define log_info(...)      log_write("[INFO]",__VA_ARGS__)
+
 #define ERROR_EXIT(error_code)\
     {\
         log_error("error_code:",error_code,"<->",#error_code);\
         _result.error = error_code; \
         return; \
     }
+#define CHILD_ERROR_EXIT(error_code)\
+    {\
+        log_fatal("System_error:",#error_code);\
+        __LOG__.~LOG();\
+        raise(SIGUSR1);\
+        exit(EXIT_FAILURE);\
+    }
 
 
 // ==================== utils end
-// ==================== deal
+// ==================== 子进程处理
+//
+template <class C, typename T>
+T getPointerType(T C::*v);
+
+template<typename CONFIG,typename Member,
+    typename LIMIT_Type,
+    typename pointTotype = decltype(getPointerType(std::declval<Member>()))
+>
+bool __do_serlimit(CONFIG& c,Member m,
+        pointTotype v,LIMIT_Type limit){
+    if(c.*m != UNLIMITED){
+        struct rlimit LIMIT;
+        LIMIT.rlim_cur = LIMIT.rlim_max = static_cast<rlim_t>(v);
+        return setrlimit(limit, &LIMIT) == 0;
+    }
+    return true;
+}
+
+#define do_serlimit(Member,LIMIT_Type)\
+    if( not __do_serlimit(_config,&config::Member,_config.Member,LIMIT_Type) )\
+            CHILD_ERROR_EXIT(SETRLIMIT_FAILED);
+
+#define do_serlimit_new_value(Member,LIMIT_Type,value)\
+    if( not __do_serlimit(_config,&config::Member,value,LIMIT_Type) )\
+            CHILD_ERROR_EXIT(SETRLIMIT_FAILED);
+
+
+
+void child_process(config & _config){
+    FILE *input_file = NULL, *output_file = NULL, *error_file = NULL;
+    // 栈空间
+    do_serlimit(max_stack,RLIMIT_STACK)
+
+    // 内存
+    if( not _config.memory_limit_check_only ){
+        do_serlimit_new_value(max_memory,RLIMIT_AS,_config.max_memory*2)
+    }
+
+    //cpu time
+    do_serlimit_new_value(max_cpu_time, RLIMIT_CPU,(_config.max_cpu_time+1000)/1000 )
+
+    //
+    do_serlimit(max_process_number, RLIMIT_NPROC)
+
+    do_serlimit(max_output_size, RLIMIT_FSIZE)
+
+    if(_config.input_path.length() != 0){
+        input_file = fopen(_config.input_path.c_str(), "r");
+        if (input_file == NULL) {
+            CHILD_ERROR_EXIT(DUP2_FAILED);
+        }
+
+        if( dup2(fileno(input_file),fileno(stdin)) == -1){
+            CHILD_ERROR_EXIT(DUP2_FAILED);
+        }
+    }
+
+    if(_config.output_path.length() != 0){
+        output_file = fopen(_config.output_path.c_str(), "w");
+        if (output_file == NULL) {
+            CHILD_ERROR_EXIT(DUP2_FAILED);
+        }
+
+        if( dup2(fileno(output_file),fileno(stdout)) == -1){
+            CHILD_ERROR_EXIT(DUP2_FAILED);
+        }
+    }
+
+
+    if (_config.error_path.length() != 0 ) {
+        // if outfile and error_file is the same path, we use the same file pointer
+        if (_config.output_path.length() != 0 &&_config.output_path == _config.error_path) {
+            error_file = output_file;
+        }
+        else {
+            error_file = fopen(_config.error_path.c_str(), "w");
+            if (error_file == NULL) {
+                CHILD_ERROR_EXIT(DUP2_FAILED);
+            }
+        }
+        // redirect stderr -> file
+        if (dup2(fileno(error_file), fileno(stderr)) == -1) {
+            CHILD_ERROR_EXIT(DUP2_FAILED);
+        }
+    }
+
+    // set gid
+    gid_t group_list[] = {_config.gid};
+    if (_config.gid != -1 && (setgid(_config.gid) == -1 || setgroups(sizeof(group_list) / sizeof(gid_t), group_list) == -1)) {
+        CHILD_ERROR_EXIT(SETUID_FAILED);
+    }
+
+    // set uid
+    if (_config.uid != -1 && setuid(_config.uid) == -1) {
+        CHILD_ERROR_EXIT(SETUID_FAILED);
+    }
+
+    char * args[256]{NULL},* env[256]{NULL};
+    for(int i = 0 ;i < 256 && i < _config.args.size(); ++i)
+        args[i] = _config.args[i].data();
+    for(int i = 0 ;i < 256 && i < _config.env.size(); ++i)
+        env[i] = _config.env[i].data();
+
+    execve(_config.exe_path.c_str(), args,env);
+    CHILD_ERROR_EXIT(EXECVE_FAILED);
+
+}
 
 // ==================== Function
-void run(config const & _config, result &_result) {
+void run(config & _config, result &_result) {
 
     // check whether current user is root
     uid_t uid = getuid();
     log_info(uid);
     if (uid != 0) {
-        //ERROR_EXIT(ROOT_REQUIRED);
+        ERROR_EXIT(ROOT_REQUIRED);
     }
     // TODO check arguments
 
@@ -236,10 +370,10 @@ int main(int argc,char *argv[]){
     cmd.addArgument({"-p","--max_process_number"}, &CONFIG.max_process_number,  "最大进程数量，默认没有限制");
     cmd.addArgument({"-os","--max_output_size"}, &CONFIG.max_output_size,  "最大输出大小(byte)");
 
-    cmd.addArgument({"-e","exe_path"}, &CONFIG.exe_path, "要判断的程序的路径");
-    cmd.addArgument({"-i","input_path"}, &CONFIG.input_path,  "输入文件路径");
-    cmd.addArgument({"-o","output_path"}, &CONFIG.output_path,  "输出文件路径");
-    cmd.addArgument({"-ep","error_path"}, &CONFIG.error_path,  "错误输出路径");
+    cmd.addArgument({"-e","--exe_path"}, &CONFIG.exe_path, "要判断的程序的路径");
+    cmd.addArgument({"-i","--input_path"}, &CONFIG.input_path,  "输入文件路径");
+    cmd.addArgument({"-o","--output_path"}, &CONFIG.output_path,  "输出文件路径");
+    cmd.addArgument({"-ep","--error_path"}, &CONFIG.error_path,  "错误输出路径");
 
     cmd.addArgument({"--args"}, &CONFIG.args,  "程序运行的参数表"); // TODO
     cmd.addArgument({"--env"}, &CONFIG.env,  "环境表");
@@ -284,5 +418,6 @@ int main(int argc,char *argv[]){
     // ================= 命令行解析 功能 结束
 
     run(CONFIG, RESULT);
+    print_result();
     return 0;
 }

@@ -16,6 +16,8 @@
 #include <grp.h>
 #include <signal.h>
 
+#include "judger.h"
+
 // ============================  args parse 
 // [C++17 Command Line Parsing!](http://schneegans.github.io/tutorials/2019/08/06/commandline)
 // fake operator
@@ -231,20 +233,6 @@ bool     show_version            = false;
 uint32_t version = 1;
 
 //// 程序比较运行需要的变量
-enum {
-    SUCCESS             = 0,
-    INVALID_CONFIG      = -1,
-    FORK_FAILED         = -2,
-    PTHREAD_FAILED      = -3,
-    WAIT_FAILED         = -4,
-    ROOT_REQUIRED       = -5,
-    LOAD_SECCOMP_FAILED = -6,
-    SETRLIMIT_FAILED    = -7,
-    DUP2_FAILED         = -8,
-    SETUID_FAILED       = -9,
-    EXECVE_FAILED       = -10,
-    SPJ_ERROR           = -11
-};
 
 struct config {
     uint32_t    max_cpu_time{UNLIMITED};
@@ -267,25 +255,7 @@ struct config {
 } CONFIG;
 
 
-enum {
-    WRONG_ANSWER             = -1,
-    CPU_TIME_LIMIT_EXCEEDED  = 1,
-    REAL_TIME_LIMIT_EXCEEDED = 2,
-    MEMORY_LIMIT_EXCEEDED    = 3,
-    RUNTIME_ERROR            = 4,
-    SYSTEM_ERROR             = 5
-};
-
-// 存结果 POD
-struct result {
-    int cpu_time;
-    int real_time;
-    long memory;
-    int signal;
-    int exit_code;
-    int error;
-    int result;
-} RESULT;
+result RESULT;
 
 // ==================== utils
 template<char Delimiter = ' ',typename... Args>
@@ -438,16 +408,20 @@ void child_process(config & _config){
         }
     }
 
-    // set gid
+#ifndef LOCAL
+    //set gid
     gid_t group_list[] = {_config.gid};
     if (_config.gid != -1 && (setgid(_config.gid) == -1 || setgroups(sizeof(group_list) / sizeof(gid_t), group_list) == -1)) {
         CHILD_ERROR_EXIT(SETUID_FAILED);
     }
+#endif
 
-    // set uid
+#ifndef LOCAL
+    //set uid
     if (_config.uid != -1 && setuid(_config.uid) == -1) {
         CHILD_ERROR_EXIT(SETUID_FAILED);
     }
+#endif
 
     char * args[256]{NULL},* env[256]{NULL};
     for(int i = 0 ;i < 256 && i < _config.args.size(); ++i)
@@ -463,12 +437,14 @@ void child_process(config & _config){
 // ==================== Function
 void run(config & _config, result &_result) {
 
+#ifndef LOCAL
     // check whether current user is root
     uid_t uid = getuid();
-    log_info(uid);
     if (uid != 0) {
         ERROR_EXIT(ROOT_REQUIRED);
     }
+#endif
+        
     // TODO check arguments
 
 
@@ -583,8 +559,10 @@ int main(int argc,char *argv[]){
     cmd.addArgument({"--log_path"}, &CONFIG.log_path,  "日志路径,默认 judge_log.txt");
     cmd.addArgument({"-rule","--seccomp_rule_name"}, &CONFIG.seccomp_rule_name,  "Seccomp Rule Name");
 
+#ifndef LOCAL
     cmd.addArgument({"-u","--uid"}, &CONFIG.uid,  "UID (default 65534)");
     cmd.addArgument({"-g","--gid"}, &CONFIG.gid,  "GID (default 65534)");
+#endif
     cmd.parse(argc, argv);
 
     if( help ){

@@ -7,6 +7,22 @@
 
 ## 安装
 
+```bash
+git clone https://github.com/rainboyOJ/judgercpp
+cd judgercpp
+make
+sudo make install
+```
+
+### 在服务器上安装
+
+```bash
+git clone https://github.com/rainboyOJ/judgercpp
+cd judgercpp
+make local=no
+sudo make install
+```
+
 ## 使用
 
 ## Judger Server

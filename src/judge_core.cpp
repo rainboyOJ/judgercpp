@@ -1,9 +1,12 @@
 #include <thread>
 #include <string>
+#include <fstream>
+#include <unistd.h>
 
 #include "common.h"
 
 #define UNLIMITED 0
+
 // 全局变量
 //// == for arguments
 CommandLine cmd("judger for noier and acmer.");
@@ -72,13 +75,48 @@ struct result {
 
 // ==================== utils
 template<typename... Args>
-void debug_out(Args&&... args){
-    (std::cout << ... << args) <<std::endl;
+void debug_out(std::ostream &os, Args&&... args){
+    // TODO 每个东西用空格隔开
+    // pos << ... << args
+    ( (os << args << ' '),... ) <<std::endl;
 }
+
+//TODO log
+struct LOG {
+    //LOG() = delete;
+    //LOG(const char * file_name) 
+        //: file_name{file_name},ofs{file_name}
+    //{};
+    ~LOG(){ ofs.close(); }
+    void init(const char * file_name) {
+        ofs = std::ofstream(file_name);
+    }
+    template<typename... Args>
+    void write(Args&&... args){
+        debug_out(ofs, std::forward<Args>(args)...);
+    }
+    std::ofstream ofs;
+} __LOG__;
+
+#define LOG_INIT(arg)   __LOG__.init(arg)
+#define log_write( TAG, ...) __LOG__.write(TAG,"[at Function]:",__FUNCTION__,"[at LINE]:",__LINE__,__VA_ARGS__)
+//TODO
+#define log_error(...)     log_write("[ERROR]",__VA_ARGS__)
+#define log_waring(...)    log_write("[WARNING]",__VA_ARGS__)
+#define log_fatal(...)     log_write("[FATAL]",__VA_ARGS__)
+#define log_info(...)      log_write("[INFO]",__VA_ARGS__)
+
+
 // ==================== utils end
 
 // ==================== Function
 void run(config const & _config, result &_result) {
+
+    // check whether current user is root
+    uid_t uid = getuid();
+    log_info(uid);
+    if (uid != 0) {
+    }
 }
 // ==================== Function end
 
@@ -126,6 +164,8 @@ int main(int argc,char *argv[]){
         return 0;
     }
 
+    LOG_INIT(CONFIG.log_path.c_str());
+
     
     #ifdef DEBUG
         std::cout << "max_cpu_time "<<" "<< CONFIG.max_cpu_time << std::endl;
@@ -146,5 +186,7 @@ int main(int argc,char *argv[]){
         std::cout << "\n\n" ;
     #endif
     // ================= 命令行解析 功能 结束
+
+    run(CONFIG, RESULT);
     return 0;
 }

@@ -4,7 +4,7 @@
 #include <utility>
 #include <string>
 #include <fstream>
-#include <unistd.h>
+#include <unistd.h> 
 #include <variant>
 #include <vector>
 #include <algorithm>
@@ -482,11 +482,9 @@ void run(config & _config, result &_result) {
     }
     else if (child_pid == 0){
         // child_process
-        std::cout << "now child process" << std::endl;
         child_process(_config);
     }
     else if ( child_pid > 0){
-        std::cout << "now father process" << std::endl;
         int status;
         struct rusage resource_usage;
         //wait4 等到pid进程结束,并得到resource https://man7.org/linux/man-pages/man2/wait4.2.html
@@ -602,8 +600,23 @@ int main(int argc,char *argv[]){
 
     
     #ifdef DEBUG
-        std::cout << "max_cpu_time "<<" "<< CONFIG.max_cpu_time << std::endl;
-        std::cout << "log_path"<<" "<< CONFIG.log_path << std::endl;
+#define print_config(node) std::cout << std::setw(25) << #node ":" << '\t'<< CONFIG.node << '\n'
+        print_config(max_cpu_time);
+        print_config(max_real_time);
+        print_config(max_process_number);
+        print_config(memory_limit_check_only);
+        print_config(max_output_size);
+        print_config(max_memory);
+        print_config(max_stack);
+        print_config(exe_path);
+        print_config(input_path);
+        print_config(output_path);
+        print_config(error_path);
+        print_config(log_path);
+        print_config(seccomp_rule_name);
+        print_config(seccomp_rule_name);
+        print_config(uid);
+        print_config(gid);
 
         std::cout << "--args count " << CONFIG.args.size() << std::endl ;
         for (const auto& e : CONFIG.args) {

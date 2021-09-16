@@ -1,7 +1,13 @@
 #include <thread>
+#include <chrono>
 #include <string>
 #include <fstream>
 #include <unistd.h>
+
+
+#include <sys/wait.h>
+#include <sys/resource.h>
+#include <sys/types.h>
 
 #include "common.h"
 
@@ -99,15 +105,22 @@ struct LOG {
 } __LOG__;
 
 #define LOG_INIT(arg)   __LOG__.init(arg)
-#define log_write( TAG, ...) __LOG__.write(TAG,"[at Function]:",__FUNCTION__,"[at LINE]:",__LINE__,__VA_ARGS__)
+#define log_write( TAG, ...) __LOG__.write(TAG,"[at Function]:",__FUNCTION__,"[at LINE]:",__LINE__,';',__VA_ARGS__)
 //TODO
 #define log_error(...)     log_write("[ERROR]",__VA_ARGS__)
 #define log_waring(...)    log_write("[WARNING]",__VA_ARGS__)
 #define log_fatal(...)     log_write("[FATAL]",__VA_ARGS__)
 #define log_info(...)      log_write("[INFO]",__VA_ARGS__)
+#define ERROR_EXIT(error_code)\
+    {\
+        log_error("error_code:",error_code,"<->",#error_code);\
+        _result.error = error_code; \
+        return; \
+    }
 
 
 // ==================== utils end
+// ==================== deal
 
 // ==================== Function
 void run(config const & _config, result &_result) {
@@ -116,6 +129,89 @@ void run(config const & _config, result &_result) {
     uid_t uid = getuid();
     log_info(uid);
     if (uid != 0) {
+        //ERROR_EXIT(ROOT_REQUIRED);
+    }
+    // TODO check arguments
+
+
+
+  //std::chrono::time_point< std::chrono::system_clock > 
+      auto time_start = std::chrono::system_clock::now();
+
+    pid_t child_pid = fork();
+    if( child_pid < 0 ){
+        ERROR_EXIT(FORK_FAILED);
+    }
+    else if (child_pid == 0){
+        // child_process
+        std::cout << "now child process" << std::endl;
+        child_process(_config);
+    }
+    else if ( child_pid > 0){
+        std::cout << "now father process" << std::endl;
+        int status;
+        struct rusage resource_usage;
+        //wait4 等到pid进程结束,并得到resource https://man7.org/linux/man-pages/man2/wait4.2.html
+        // WSTOPPED 直到stop https://man7.org/linux/man-pages/man2/wait.2.html
+        if( wait4(child_pid, &status, WSTOPPED, &resource_usage) == -1) {
+            kill(child_pid,SIGKILL);
+            ERROR_EXIT(WAIT_FAILED);
+        }
+
+
+
+        //std::chrono::time_point< std::chrono::system_clock > 
+        auto time_end = std::chrono::system_clock::now();
+
+        std::chrono::duration<double, std::milli>(time_start
+                - time_end).count();
+ 
+
+//WIFSIGNALED(wstatus) returns true if the child process was terminated by a signal.
+              // WTERMSIG(wstatus)
+              //    returns the number of the signal that caused the child
+              //    process to terminate.  This macro should be employed only
+              //    if WIFSIGNALED returned true.
+        if (WIFSIGNALED(status) != 0) {
+            _result.signal = WTERMSIG(status); //被哪个信号关闭的
+        }
+
+        if(_result.signal == SIGUSR1) {
+            _result.result = SYSTEM_ERROR; // 为什么SIGUSR1 表示系统错误
+        }
+        else {
+            _result.exit_code = WEXITSTATUS(status);
+            _result.cpu_time = (int) (resource_usage.ru_utime.tv_sec * 1000 +
+                                       resource_usage.ru_utime.tv_usec / 1000);
+            _result.memory = resource_usage.ru_maxrss * 1024; // kb to bytes
+
+            if (_result.exit_code != 0) {
+                _result.result = RUNTIME_ERROR;
+            }
+
+            if (_result.signal == SIGSEGV) { // 段错误
+                if (_config.max_memory != UNLIMITED && _result.memory > _config.max_memory) {
+                    _result.result = MEMORY_LIMIT_EXCEEDED; //超内存
+                }
+                else {
+                    _result.result = RUNTIME_ERROR; // 运行错误
+                }
+            }
+            else {
+                if (_result.signal != 0) {
+                    _result.result = RUNTIME_ERROR;
+                }
+                if (_config.max_memory != UNLIMITED && _result.memory > _config.max_memory) {
+                    _result.result = MEMORY_LIMIT_EXCEEDED;
+                }
+                if (_config.max_real_time != UNLIMITED && _result.real_time > _config.max_real_time) {
+                    _result.result = REAL_TIME_LIMIT_EXCEEDED;
+                }
+                if (_config.max_cpu_time != UNLIMITED && _result.cpu_time > _config.max_cpu_time) {
+                    _result.result = CPU_TIME_LIMIT_EXCEEDED;
+                }
+            }
+        }
     }
 }
 // ==================== Function end

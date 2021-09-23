@@ -22,5 +22,11 @@ judger_core: judge_core.cpp
 judger: judge_wrapper.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
+install::
+	cp judger_core judger /usr/bin
+
+uninstall::
+	rm -rf /usr/bin/judge_core  /usr/bin/judger
+
 clean::
 	rm judger_core judger

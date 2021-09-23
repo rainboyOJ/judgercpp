@@ -559,10 +559,10 @@ int main(int argc,char *argv[]){
     cmd.addArgument({"--log_path"}, &CONFIG.log_path,  "日志路径,默认 judge_log.txt");
     cmd.addArgument({"-rule","--seccomp_rule_name"}, &CONFIG.seccomp_rule_name,  "Seccomp Rule Name");
 
-#ifndef LOCAL
+//#ifndef LOCAL //local也接收这个参数 但不会产生任何效果
     cmd.addArgument({"-u","--uid"}, &CONFIG.uid,  "UID (default 65534)");
     cmd.addArgument({"-g","--gid"}, &CONFIG.gid,  "GID (default 65534)");
-#endif
+//#endif
     cmd.parse(argc, argv);
 
     if( help ){

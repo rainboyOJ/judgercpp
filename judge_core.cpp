@@ -424,10 +424,20 @@ void child_process(config & _config){
 #endif
 
     char * args[256]{NULL},* env[256]{NULL};
+    args[0] = _config.exe_path.data();
+
     for(int i = 0 ;i < 256 && i < _config.args.size(); ++i)
-        args[i] = _config.args[i].data();
+        args[i+1] = _config.args[i].data();
     for(int i = 0 ;i < 256 && i < _config.env.size(); ++i)
         env[i] = _config.env[i].data();
+
+    #ifdef DEBUG
+    //std::cout << "==args=="  << std::endl;
+        //for(int i=0;i<256;++i){
+            //if( args[i] != NULL)
+                //std::cout << args[i] << std::endl;
+        //}
+    #endif
 
     execve(_config.exe_path.c_str(), args,env);
     CHILD_ERROR_EXIT(EXECVE_FAILED);

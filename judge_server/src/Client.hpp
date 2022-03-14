@@ -16,6 +16,7 @@
 #include <arpa/inet.h>
 
 #include "socketBase.hpp"
+#include "Send.hpp"
 
 class Client :public socketBase{
 public:
@@ -24,7 +25,21 @@ public:
         close(sockfd);
     }
     void Connect();
-    void send(std::string_view msg); //发送评测数据
+    /**
+     * pid 评测的题目的id,也有可能是题目的路径
+     * timeLimit
+     * memoryLimit
+     *
+     */
+    void send(
+            std::string_view key,
+            std::string_view code,
+            std::string_view language,
+            std::string_view pid,
+            int timeLimit,
+            int memoryLimit
+            ); //发送评测数据
+
     void clear(); // 清空
 
 private:
@@ -68,5 +83,16 @@ void Client::Connect() {
     connected = true;
 }
 
-void Client::send(std::string_view msg){
+void Client::send(
+            std::string_view key,
+            std::string_view code,
+            std::string_view language,
+            std::string_view pid,
+            int timeLimit,
+            int memoryLimit
+        ){
+    MessageSendJudge msg(key,code,language,pid,timeLimit,memoryLimit);
+    auto msg_dumps = msg.dumps();
+    TcpWrite(sockfd,msg_dumps.data(),msg_dumps.size());
+
 }

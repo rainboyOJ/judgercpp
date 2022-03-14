@@ -15,6 +15,7 @@
 #include <stdlib.h>
 
 #include "socketBase.hpp"
+#include "Send.hpp"
 
 class Server :public socketBase{
 public:
@@ -109,8 +110,12 @@ void Server::run(){
                         TcpRead(fd, readStr, &read_len);
                         //read(fd, &ch, 1);
                         //sleep(5);
+                        MessageSendJudge msgj;
+                        msgj.loads(readStr);
+
                         std::cout << "read content is : "  << std::endl;
-                        std::cout <<  readStr << std::endl;
+                        //std::cout <<  readStr << std::endl;
+                        std::cout << msgj << std::endl;
                     }
                 }
             }

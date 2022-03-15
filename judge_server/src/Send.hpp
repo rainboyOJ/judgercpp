@@ -7,7 +7,6 @@
 #include <sstream>
 #include <cstring>
 #include <iostream>
-#include <arpa/inet.h>
 
 #include "MessageBuffer.hpp"
 

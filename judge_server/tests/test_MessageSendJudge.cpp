@@ -21,13 +21,22 @@ int main(){
     
     MessageSendJudge msg2;
     msg2.loads(dumps);
+
+    std::string str;
     for (const auto& e : dumps) {
         //std::cout << e << " ";
         printf("%x ",e & 0xff);
-
+        str += e;
     }
     
     std::cout  << "\n\n";
     std::cout << msg2 << std::endl;
+
+    std::cout  << "\n\n string dumps test <<\n";
+
+    MessageSendJudge msg3;
+    msg3.loads(str);
+    std::cout << msg3 << std::endl;
+
     return 0;
 }

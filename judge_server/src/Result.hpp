@@ -26,6 +26,9 @@ public:
         :code{code},msg{msg}
     {}
 
+    void set_code(judgeResult_id _code) { code = _code;}
+    void set_msg(std::string_view _msg) { msg  = std::string(_msg);}
+
     void loads(std::string_view str);
     MessageBuffer dumps();
     void push_back(

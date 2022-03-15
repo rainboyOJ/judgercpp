@@ -10,12 +10,8 @@
 #include <atomic>
 #include <ctime>
 
-/**
- * 一个评测点的结果
- */
-struct oneJudgeResult {
-    
-};
+#include "define.hpp"
+#include "Result.hpp"
 
 
 /**
@@ -26,13 +22,25 @@ struct judgeResult {
     {
         time_stamp_ = std::time(nullptr) + expire;
     }
-    void push_back(oneJudgeResult&& res){
+
+    //压入评测的结果
+    void push_back( int cpu_time,  int real_time, long memory, int signal,
+                    int exit_code, int error, int result) {
         std::lock_guard<std::mutex> lock(mtx_);
-        results.emplace_back(std::move(res));
+        res.push_back( cpu_time,  real_time, memory,  signal,  exit_code,  error,  result);
     }
-    std::vector<oneJudgeResult> results;
+
+    //设定执行的结果和消息
+    void set_code_and_msg(judgeResult_id _code,std::string_view _msg){
+        std::lock_guard<std::mutex> lock(mtx_);
+        res.set_code(_code);
+        res.set_msg(_msg);
+    }
+
     std::time_t time_stamp_; //过期时间
-    std::mutex mtx_;        //锁
+    std::mutex mtx_;         //锁
+    bool end{false};        //是否评测结束
+    MessageResultJudge res;
 };
 
 

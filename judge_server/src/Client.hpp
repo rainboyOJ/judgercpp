@@ -14,9 +14,14 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <functional>
 
 #include "socketBase.hpp"
 #include "Send.hpp"
+#include "Result.hpp"
+
+//处理得到的结果集的函数
+using result_handler = std::function<void(MessageResultJudge &)>;
 
 class Client :public socketBase{
 public:
@@ -42,11 +47,16 @@ public:
 
     void clear(); // 清空
 
+    void set_result_handle(result_handler&& handle){
+        __handle = std::move(handle);
+    }
+
 private:
     int    sockfd;
     struct sockaddr_in servaddr;
     bool   connected{false};
-    int port;
+    int    port;
+    result_handler __handle{nullptr};
 
 };
 

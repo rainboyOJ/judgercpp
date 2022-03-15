@@ -3,8 +3,11 @@
 
 int main(){
     
-    Client myclient;
-    myclient.Connect();
+    Client myclient(4);
+
+    myclient.set_result_handle([](MessageResultJudge & res){
+                std::cout << res << std::endl;
+            });
     myclient.send("key"
             ,"this is code"
             ,"cpp"
@@ -12,5 +15,6 @@ int main(){
             ,1000
             ,128
             );
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     return 0;
 }

@@ -98,6 +98,7 @@ void MessageResultJudge::loads(std::string_view str){
         auto p = (int *)&r.memory;
         *p     = v1;
         *(p+1) = v2;
+        r.signal= MessageBuffer::dumpsMessageFromStr<int>(str.data(),cur);
         r.exit_code= MessageBuffer::dumpsMessageFromStr<int>(str.data(),cur);
         r.error= MessageBuffer::dumpsMessageFromStr<int>(str.data(),cur);
         r.result= MessageBuffer::dumpsMessageFromStr<int>(str.data(),cur);

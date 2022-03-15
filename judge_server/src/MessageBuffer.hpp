@@ -40,6 +40,14 @@ class MessageBuffer {
         template<typename T>
         T dumpsMessage();
 
+        std::string to_string(){
+            std::string str;
+            for (const auto& e : buff) {
+                str+=e;
+            }
+            return str;
+        }
+
         //导出message,从外部的字符串
         template<typename T>
         static T dumpsMessageFromStr(const char * ptr,int & cur);

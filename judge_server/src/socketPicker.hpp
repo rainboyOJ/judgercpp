@@ -10,14 +10,17 @@
 #include <thread>
 
 //RAII
-template<std::size_t size=4>
 class socketPicker {
 public:
-    socketPicker(){
+    socketPicker( moodycamel::ConcurrentQueue<int>& q)
+        :q{q}
+    {
         do {
             q.try_dequeue(sock);
+            std::cout << "pick sock "<< sock << std::endl;
             if(sock == -1 )
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            else break;
         } while(1);
     }
     ~socketPicker(){
@@ -26,9 +29,7 @@ public:
     int get(){ return sock; }
 private:
     int sock{-1};
-    static moodycamel::ConcurrentQueue<int> q; //多线程队列
+    moodycamel::ConcurrentQueue<int>& q; //多线程队列
 };
 
-template<std::size_t size>
-moodycamel::ConcurrentQueue<int> socketPicker<size>::q{size};
 

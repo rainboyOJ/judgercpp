@@ -18,6 +18,7 @@
 
 #include "socketBase.hpp"
 #include "Send.hpp"
+#include "Result.hpp"
 #include "utils.hpp"
 
 class Server :public socketBase {
@@ -206,6 +207,14 @@ void Server::run(){
                         std::cout << "read content is : "  << std::endl;
                         //std::cout <<  readStr << std::endl;
                         std::cout << msgj << std::endl;
+                        MessageResultJudge msg_res(judgeResult_id::SUCCESS,"hello world");
+                        msg_res.push_back(1,2,3,4,5,6,7);
+                        msg_res.push_back(1,2,3,4,5,6,7);
+                        auto msg_res_dumps = msg_res.dumps();
+
+                        show_hex_code(msg_res_dumps);
+                        TcpWrite(fd, msg_res_dumps.data(), msg_res_dumps.size());
+                        
                     }
                 }
             }

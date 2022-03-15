@@ -12,3 +12,11 @@
 #include "define.hpp"
 
 
+
+template<typename T>
+void show_hex_code(T&& obj){
+    for (const auto& e : obj) {
+        std::cout << std::hex << (e & 0xff)  << " ";
+    }
+    std::cout << "\n";
+}

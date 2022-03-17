@@ -169,6 +169,7 @@ void Server::run(){
                     client_len = sizeof(client_address);
                     client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, &client_len);
                     FD_SET(client_sockfd, &readfds);//将客户端socket加入到集合中
+                    _SM.insert(client_sockfd);
                     //printf("adding client on fd %d\n", client_sockfd);
                     std::cout << "adding client on fd " << client_sockfd << std::endl;
                 }
@@ -192,6 +193,7 @@ void Server::run(){
                     /*客户数据请求完毕，关闭套接字，从集合中清除相应描述符 */
                     if(nread == 0)
                     {
+                        while( _SM.remove(fd) == false) ; //可以单独开一个线程关闭这个fd
                         close(fd);
                         FD_CLR(fd, &readfds); //去掉关闭的fd
                         printf("removing client on fd %d\n", fd);

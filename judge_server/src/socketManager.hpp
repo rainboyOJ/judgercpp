@@ -62,10 +62,10 @@ bool socketManager::get(int &fd){
 bool socketManager::remove(int fd){
     std::lock_guard<std::mutex> lock(mtx);
     auto it = socket_map.find(fd);
-    if( it == socket_map.end())
+    if( it == socket_map.end() )
         return false;       //dont find
     if( it->second == true)
-        return true;        //using
+        return false;        //using
     else{
         socket_map.erase(it);
         return true;

@@ -22,7 +22,7 @@
 #include "socketBase.hpp"
 #include "Send.hpp"
 #include "Result.hpp"
-#include "socketPicker.hpp"
+#include "socketManager.hpp"
 
 #include "utils.hpp"
 
@@ -37,11 +37,9 @@ public:
         for( int i = 0 ;i < connect_size;i++){
             {
                 int sockfd = -1;
-                q.try_dequeue(sockfd);
-                if( sockfd  == -1)
-                    --i;
-                else
-                    close(sockfd);
+                //q.try_dequeue(sockfd);
+                _SM.removeAll();
+                for (auto& fd : sockfd_vec) close(fd);
             }
         }
         Recv_th.join();
@@ -76,14 +74,15 @@ private:
     std::vector<int> sockfd_vec;
     std::size_t connect_size; //连接数量
     result_handler __handle{nullptr};
-    moodycamel::ConcurrentQueue<int> q;
+    //moodycamel::ConcurrentQueue<int> q;
+    socketManager _SM;
     std::thread Recv_th; //接收信息的线程
     fd_set fdset;
     std::atomic_bool runing;
 };
 
 Client::Client(std::size_t connect_size,int port)
-    :connect_size{connect_size}, port(port),q{connect_size}
+    :connect_size{connect_size}, port(port)
 {
     std::cout << port << std::endl;
     FD_ZERO(&fdset);  //清空读的集合
@@ -102,7 +101,8 @@ Client::Client(std::size_t connect_size,int port)
         servaddr.sin_port   = htons(port);
         servaddr.sin_addr.s_addr=inet_addr("127.0.0.1");
         Connect(sockfd);
-        q.try_enqueue(sockfd); //加入到队列里
+        //q.try_enqueue(sockfd); //加入到队列里
+        _SM.insert(sockfd); // 加入到socket管理
         sockfd_vec.push_back(sockfd);
         FD_SET(sockfd, &fdset);//将服务器端socket加入到集合中
     }
@@ -169,10 +169,13 @@ void Client::send(
     //TODO
     //TcpWrite(sockfd,msg_dumps.data(),msg_dumps.size());
     {
-        std::cout << "start pick" << std::endl;
-        auto pick = socketPicker(q);
-        auto sock = pick.get();
-        std::cout << "end pick " << sock << std::endl;
-        TcpWrite(sock, msg_dumps.data(),msg_dumps.size() );
+        int fd  = -1;
+        if (connect_size <= 0 ){
+            std::cout  << "LINE: "<< __LINE__ << "connect_size <= 0 "  << std::endl;
+            return;
+        }
+        while(fd == -1) _SM.get(fd);
+        //std::cout << "end pick " << sock << std::endl;
+        TcpWrite(fd, msg_dumps.data(),msg_dumps.size() );
     }
 }

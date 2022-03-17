@@ -1,5 +1,6 @@
 /**
  * @brief 对socket,select进行封装
+ * 遵循一个笑意的原则,哪个socket发送过来的,就用哪个socket发用回去
  */
 
 #pragma once
@@ -21,6 +22,7 @@
 #include "Result.hpp"
 #include "utils.hpp"
 #include "concurrentqueue.h"
+#include "socketManager.hpp"
 
 class Server :public socketBase {
 public:
@@ -53,6 +55,7 @@ private:
     //static std::atomic<bool> runing; //是否在在执行
     //static int m_socket_pipe[2];            //管道socket,用来监听 signal
     moodycamel::ConcurrentQueue<int> q;     // 存接入的socket队列
+    socketManager _SM;
 };
 
 //int Server::m_socket_pipe[2];

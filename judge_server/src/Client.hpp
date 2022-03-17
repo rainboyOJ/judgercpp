@@ -174,7 +174,8 @@ void Client::send(
             std::cout  << "LINE: "<< __LINE__ << "connect_size <= 0 "  << std::endl;
             return;
         }
-        while(fd == -1) _SM.get(fd);
+        socketManagerRAII smRa(_SM);
+        fd = smRa.get();
         //std::cout << "end pick " << sock << std::endl;
         TcpWrite(fd, msg_dumps.data(),msg_dumps.size() );
     }

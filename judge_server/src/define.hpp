@@ -57,6 +57,11 @@ enum class SUPORT_LANG {
     UNSUPORT
 };
 
+enum class JUDGE_STAGE: int {
+    PREPARE = 1,    //准备
+    JUDGING = 2     //评测
+};
+
 // 存结果 POD
 struct result {
     int cpu_time;

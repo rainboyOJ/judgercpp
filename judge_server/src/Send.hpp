@@ -26,7 +26,6 @@ public:
     void loads(MessageBuffer & buf); //反序列化,从字符串转换过中
     MessageBuffer dumps(); //序列化,转成字符串
     friend std::ostream & operator<<(std::ostream & out,const MessageSendJudge& msgBuf);
-private:
     std::string key;        // 返回结果时携带的key值
     std::string code;       // 代码
     std::string language;   // 语言

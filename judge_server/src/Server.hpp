@@ -24,8 +24,7 @@
 #include "concurrentqueue.h"
 #include "socketManager.hpp"
 #include "judgeQueue.hpp"
-#include "threadPool.hpp"
-#include "execJudgeWork.hpp"
+#include "judgeWorkPool.hpp"
 
 class Server :public socketBase {
 public:
@@ -65,7 +64,8 @@ private:
     socketManager _SM;
 
     unsigned int _judgeWorkSize;
-    THREAD_POOL::threadpool thPool;
+
+    judgeWorkPool workPool;
 };
 
 //int Server::m_socket_pipe[2];
@@ -94,7 +94,7 @@ void Server::sig_handler_wrapper(int sig){
 }
 
 Server::Server(int port,int socket_num,unsigned int judgeWorkSize)
-    :port{port},socket_num{socket_num},_judgeWorkSize{judgeWorkSize},thPool{judgeWorkSize}
+    :port{port},socket_num{socket_num},_judgeWorkSize{judgeWorkSize},workPool{judgeWorkSize}
 {
     server_sockfd                  = socket(AF_INET, SOCK_STREAM, 0);//建立服务器端socket server_address.sin_family      = AF_INET;
     if( server_sockfd == -1){
@@ -225,14 +225,15 @@ void Server::run(){
                         std::cout << "read content is : "  << std::endl;
                         //std::cout <<  readStr << std::endl;
                         std::cout << msgj << std::endl;
+                        //加入workpool
+
+                        workPool.enque(std::move(msgj), fd);
+
+                        //输出的数据
                         MessageResultJudge msg_res(judgeResult_id::SUCCESS,"hello world");
                         msg_res.push_back(1,2,3,4,5,6,7);
                         msg_res.push_back(1,2,3,4,5,6,7);
                         auto msg_res_dumps = msg_res.dumps();
-
-
-                        thPool.commit([this](){ judgeWork();});
-
                         show_hex_code(msg_res_dumps);
                         TcpWrite(fd, msg_res_dumps.data(), msg_res_dumps.size());
                         

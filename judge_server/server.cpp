@@ -7,7 +7,7 @@ int main()
 {
 
 
-    Server myserver(9000,4);
+    Server myserver(9000,4,1);
     myserver.run();
 
     return 0;

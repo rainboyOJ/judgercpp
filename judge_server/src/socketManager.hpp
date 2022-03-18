@@ -12,6 +12,11 @@
 
 class socketManager {
 public:
+    //单例模式
+    static socketManager & Instance(){
+        static socketManager sm;
+        return sm;
+    }
     void insert(int fd);       //插入
     bool get(int &fd);         //获得随机的socket
     bool get_specified_fd(int fd);  //获取指定的socket
@@ -19,26 +24,27 @@ public:
     bool unuse(int fd);        //设末使用
     void removeAll();
 private:
+    socketManager() = default;
     std::map<int,bool> socket_map; // {fd,use?}
     std::mutex mtx;
 };
 
 class socketManagerRAII{
 public:
-    socketManagerRAII(socketManager &sm) : _SM{sm}
+    socketManagerRAII()
     { //随机获取
-        while( _SM.get(fd)  == false) ;
+        while(socketManager::Instance().get(fd)  == false) ;
     }
     //指定获取
-    socketManagerRAII(socketManager &sm,int _fd) : _SM{sm}
+    explicit socketManagerRAII(int _fd)
     { 
-        while( _SM.get_specified_fd(_fd)  == false) ;
+        while( socketManager::Instance().get_specified_fd(_fd)  == false) ;
         fd = _fd;
     }
-    ~socketManagerRAII(){ _SM.unuse(fd); }
+    ~socketManagerRAII(){ 
+        socketManager::Instance().unuse(fd); }
     int get() { return fd; }
 private:
-    socketManager & _SM;
     int fd{-1};
 };
 

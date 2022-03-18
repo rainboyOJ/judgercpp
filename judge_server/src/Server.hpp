@@ -61,7 +61,7 @@ private:
     //static std::atomic<bool> runing; //是否在在执行
     //static int m_socket_pipe[2];            //管道socket,用来监听 signal
     //moodycamel::ConcurrentQueue<int> q;     // 存接入的socket队列
-    socketManager _SM;
+    //socketManager _SM;
 
     unsigned int _judgeWorkSize;
 
@@ -180,7 +180,7 @@ void Server::run(){
                     client_len = sizeof(client_address);
                     client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, &client_len);
                     FD_SET(client_sockfd, &readfds);//将客户端socket加入到集合中
-                    _SM.insert(client_sockfd);
+                    socketManager::Instance().insert(client_sockfd);
                     //printf("adding client on fd %d\n", client_sockfd);
                     std::cout << "adding client on fd " << client_sockfd << std::endl;
                 }
@@ -204,7 +204,7 @@ void Server::run(){
                     /*客户数据请求完毕，关闭套接字，从集合中清除相应描述符 */
                     if(nread == 0)
                     {
-                        while( _SM.remove(fd) == false) ; //可以单独开一个线程关闭这个fd
+                        while( socketManager::Instance().remove(fd) == false) ; //可以单独开一个线程关闭这个fd
                         close(fd);
                         FD_CLR(fd, &readfds); //去掉关闭的fd
                         printf("removing client on fd %d\n", fd);
@@ -230,7 +230,7 @@ void Server::run(){
                         workPool.enque(std::move(msgj), fd);
 
                         //输出的数据
-                        MessageResultJudge msg_res(judgeResult_id::SUCCESS,"hello world");
+                        MessageResultJudge msg_res(msgj.key,judgeResult_id::SUCCESS,"hello world");
                         msg_res.push_back(1,2,3,4,5,6,7);
                         msg_res.push_back(1,2,3,4,5,6,7);
                         auto msg_res_dumps = msg_res.dumps();

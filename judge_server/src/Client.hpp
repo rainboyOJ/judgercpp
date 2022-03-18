@@ -38,7 +38,7 @@ public:
             {
                 int sockfd = -1;
                 //q.try_dequeue(sockfd);
-                _SM.removeAll();
+                socketManager::Instance().removeAll();
                 for (auto& fd : sockfd_vec) close(fd);
             }
         }
@@ -75,7 +75,7 @@ private:
     std::size_t connect_size; //连接数量
     result_handler __handle{nullptr};
     //moodycamel::ConcurrentQueue<int> q;
-    socketManager _SM;
+    //socketManager _SM;
     std::thread Recv_th; //接收信息的线程
     fd_set fdset;
     std::atomic_bool runing;
@@ -102,7 +102,7 @@ Client::Client(std::size_t connect_size,int port)
         servaddr.sin_addr.s_addr=inet_addr("127.0.0.1");
         Connect(sockfd);
         //q.try_enqueue(sockfd); //加入到队列里
-        _SM.insert(sockfd); // 加入到socket管理
+        socketManager::Instance().insert(sockfd); // 加入到socket管理
         sockfd_vec.push_back(sockfd);
         FD_SET(sockfd, &fdset);//将服务器端socket加入到集合中
     }
@@ -174,7 +174,7 @@ void Client::send(
             std::cout  << "LINE: "<< __LINE__ << "connect_size <= 0 "  << std::endl;
             return;
         }
-        socketManagerRAII smRa(_SM);
+        socketManagerRAII smRa;
         fd = smRa.get();
         //std::cout << "end pick " << sock << std::endl;
         TcpWrite(fd, msg_dumps.data(),msg_dumps.size() );

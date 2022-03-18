@@ -9,7 +9,7 @@
 
 int main(){
 
-    MessageResultJudge msg_res(judgeResult_id::SUCCESS,"hello world");
+    MessageResultJudge msg_res("key",judgeResult_id::SUCCESS,"hello world");
     msg_res.push_back(1,2,3,4,5,6,7);
     msg_res.push_back(1,2,3,4,5,6,7);
     std::cout << msg_res;

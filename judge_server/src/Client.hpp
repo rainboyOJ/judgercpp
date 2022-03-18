@@ -113,7 +113,7 @@ Client::Client(std::size_t connect_size,int port)
     Recv_th = std::thread([this](){
                 //if(this->__handle == nullptr) return;
 
-                struct timeval timeout={0,100}; //select等待1秒，1秒轮询，要非阻塞就置0
+                struct timeval timeout={10,100}; //select等待1秒，1秒轮询，要非阻塞就置0
 while(this->runing.load()){
 
                 fd_set tmpset = fdset;

@@ -8,9 +8,9 @@ int main(){
     myclient.set_result_handle([](MessageResultJudge & res){
                 std::cout << res << std::endl;
             });
-    myclient.send("key"
+    myclient.send("test key"
             ,"this is code"
-            ,"cpp"
+            ,"cxy"
             ,"1000"
             ,1000
             ,128

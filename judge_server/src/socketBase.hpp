@@ -16,18 +16,18 @@
 #include <arpa/inet.h>
 
 class socketBase {
-    protected:
+    public:
         /**
          * @desc 读取n个字节数字
          */
-        bool readn(const int sockfd,char * buffer,const size_t n);
+        static bool readn(const int sockfd,char * buffer,const size_t n);
         /**
          * @desc 写入n个字节数字
          */
-        bool writen(const int sockfd,const char * buffer,const size_t n);
+        static bool writen(const int sockfd,const char * buffer,const size_t n);
 
-        bool TcpRead(const int sockfd,std::string& buffer,int *ibuflen,const int itimeout=0);
-        bool TcpWrite(const int sockfd,const char *buffer,const int ibuflen);
+        static bool TcpRead(const int sockfd,std::string& buffer,int *ibuflen,const int itimeout=0);
+        static bool TcpWrite(const int sockfd,const char *buffer,const int ibuflen);
 
 };
 

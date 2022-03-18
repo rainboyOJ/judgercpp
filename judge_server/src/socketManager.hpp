@@ -4,7 +4,7 @@
  * - 删除
  * - 获取
  */
-
+#pragma once
 #include <atomic>
 #include <vector>
 #include <map>

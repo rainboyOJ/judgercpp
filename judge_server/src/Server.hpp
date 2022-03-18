@@ -227,15 +227,17 @@ void Server::run(){
                         std::cout << msgj << std::endl;
                         //加入workpool
 
+                        std::cout << "fd : " << fd << std::endl;
+                        
                         workPool.enque(std::move(msgj), fd);
 
                         //输出的数据
-                        MessageResultJudge msg_res(msgj.key,judgeResult_id::SUCCESS,"hello world");
-                        msg_res.push_back(1,2,3,4,5,6,7);
-                        msg_res.push_back(1,2,3,4,5,6,7);
-                        auto msg_res_dumps = msg_res.dumps();
-                        show_hex_code(msg_res_dumps);
-                        TcpWrite(fd, msg_res_dumps.data(), msg_res_dumps.size());
+                        //MessageResultJudge msg_res(msgj.key,judgeResult_id::SUCCESS,"hello world");
+                        //msg_res.push_back(1,2,3,4,5,6,7);
+                        //msg_res.push_back(1,2,3,4,5,6,7);
+                        //auto msg_res_dumps = msg_res.dumps();
+                        //show_hex_code(msg_res_dumps);
+                        //TcpWrite(fd, msg_res_dumps.data(), msg_res_dumps.size());
                         
                     }
                 }

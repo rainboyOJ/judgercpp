@@ -14,7 +14,11 @@
 #include <vector>
 #include <deque>        //双端队列
 
+#include "socketBase.hpp"
+#include "socketManager.hpp"
 #include "judgeQueue.hpp"
+#include "Result.hpp"
+#include "utils.hpp"
 
 
 
@@ -40,6 +44,11 @@ public:
         //return ret;
     }
 
+    /**
+     * 写message
+     */
+    void write_message(int fd,MessageResultJudge& msg);
+
     bool enque(MessageSendJudge&& msj,int fd){
         std::unique_lock<std::mutex> lck(mtx);
         judge_Queue_node jn;
@@ -58,6 +67,8 @@ public:
 
 private:
     void judgeWork();
+    void work_stage1(judge_Queue_node & jn); //第一个阶段工作
+    void work_stage2(judge_Queue_node & jn); //第二个阶段工作
     std::mutex mtx; //锁
     std::condition_variable _task_cv; //条件
     std::vector<std::thread> _workPool; //工作线程池
@@ -108,9 +119,46 @@ void judgeWorkPool::judgeWork(){
         std::cout << jn.code << std::endl;
         std::cout << jn.language << std::endl;
         std::cout << jn.pid << std::endl;
+        if( jn.stage == JUDGE_STAGE::PREPARE){
+            std::cout << "stage 1" << std::endl;
+            work_stage1(jn);
+        }
+        else if (jn.stage == JUDGE_STAGE::JUDGING ) {
+            std::cout << "stage 2" << std::endl; work_stage2(jn);
+        }
         //TODO 输出数据的内容
     }
-
 }
 
+void judgeWorkPool::write_message(int fd,MessageResultJudge& msg){
+    socketManagerRAII smra(fd);
+    auto str = msg.dumps().to_string();
+    std::cout << msg << std::endl;
+    show_hex_code(msg.dumps());
+    std::cout << str << std::endl;
+    show_hex_code(str);
+    std::cout << "fd : "<< fd << std::endl;
+    socketBase::TcpWrite(fd,str.c_str(),str.length());
+}
+/*
+ * 一: 准备阶段
+ *      是否是支持的评语
+ *      查找题目的位置,判断题目是否存在,并返回题目的相关信息
+ *      创建评测的文件夹
+ *      写入代码
+ *      编译
+ *      写入评测队列,进入评测阶段
+ */
+void judgeWorkPool::work_stage1(judge_Queue_node &jn){
+    if( is_sport_language(jn.language) == false){
+        MessageResultJudge res(jn.key,judgeResult_id::INVALID_CONFIG,std::string("unsupport language : ") + jn.language);
+        write_message(jn.fd, res);
+        return;
+    }
+}
+
+
+//TODO
+void judgeWorkPool::work_stage2(judge_Queue_node &jn){
+}
 

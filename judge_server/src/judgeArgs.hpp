@@ -8,6 +8,7 @@
 
 //基类
 struct judge_args {
+    judge_args() = default;
     explicit judge_args(
             std::size_t max_cpu_time, std::size_t max_real_time, std::size_t max_process_number, std::size_t max_memory, std::size_t max_stack, std::size_t max_output_size,
             std::string seccomp_rule_name,

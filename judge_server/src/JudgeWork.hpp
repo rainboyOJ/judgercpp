@@ -14,3 +14,23 @@
  */
 
 //阶段一,二都应该从一个队列里取放数据,所以要设计一个队列
+
+#pragma once
+#include <condition_variable>
+#include <vector>
+
+#include "judgeQueue.hpp"
+
+
+void judgeWork(){
+
+    auto &jq = judge_Queue::get(); //得到judge queue
+    judge_Queue_node jn;
+    bool succ = jq.try_deque(jn); //加入
+    if( succ == false) return ;  //失败
+
+    std::cout << "de judge queue succ" << std::endl;
+
+}
+
+

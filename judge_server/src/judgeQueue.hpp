@@ -9,7 +9,6 @@
 //评测队列里的一个点
 struct judge_Queue_node {
 
-    
     JUDGE_STAGE stage;      //评测的阶段
     int fd;                 //请求过的sock
     

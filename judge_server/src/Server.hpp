@@ -25,13 +25,18 @@
 #include "socketManager.hpp"
 #include "judgeQueue.hpp"
 #include "threadPool.hpp"
+#include "execJudgeWork.hpp"
 
 class Server :public socketBase {
 public:
     /**
-     * @brief 端口, 最多监听的socket数量
+     * @brief 
+     * 端口
+     * 最多监听的socket数量
+     * 评测的工作线程的数量
+     *
      */
-    explicit Server(int port,int socket_num);
+    explicit Server(int port,int socket_num,unsigned int judgeWorkSize);
     ~Server() {  Close();};
     void run();
     void Close(){
@@ -58,6 +63,9 @@ private:
     //static int m_socket_pipe[2];            //管道socket,用来监听 signal
     //moodycamel::ConcurrentQueue<int> q;     // 存接入的socket队列
     socketManager _SM;
+
+    unsigned int _judgeWorkSize;
+    THREAD_POOL::threadpool thPool;
 };
 
 //int Server::m_socket_pipe[2];
@@ -85,8 +93,8 @@ void Server::sig_handler_wrapper(int sig){
     //errno = save_errno;
 }
 
-Server::Server(int port,int socket_num)
-    :port{port},socket_num{socket_num}
+Server::Server(int port,int socket_num,unsigned int judgeWorkSize)
+    :port{port},socket_num{socket_num},_judgeWorkSize{judgeWorkSize},thPool{judgeWorkSize}
 {
     server_sockfd                  = socket(AF_INET, SOCK_STREAM, 0);//建立服务器端socket server_address.sin_family      = AF_INET;
     if( server_sockfd == -1){
@@ -129,6 +137,7 @@ Server::Server(int port,int socket_num)
     //FD_SET(m_socket_pipe[0], &readfds);//将服务器端socket加入到集合中
 
     //runing.store(true); //设置正在运行
+
 
 }
 
@@ -220,6 +229,9 @@ void Server::run(){
                         msg_res.push_back(1,2,3,4,5,6,7);
                         msg_res.push_back(1,2,3,4,5,6,7);
                         auto msg_res_dumps = msg_res.dumps();
+
+
+                        thPool.commit([this](){ judgeWork();});
 
                         show_hex_code(msg_res_dumps);
                         TcpWrite(fd, msg_res_dumps.data(), msg_res_dumps.size());

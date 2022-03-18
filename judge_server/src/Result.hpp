@@ -22,8 +22,8 @@ class MessageResultJudge {
 
 public:
     MessageResultJudge() = default;
-    MessageResultJudge(judgeResult_id code,std::string_view msg)
-        :code{code},msg{msg}
+    MessageResultJudge(std::string_view key,judgeResult_id code,std::string_view msg)
+        : key{key}, code{code},msg{msg}
     {}
 
     void set_code(judgeResult_id _code) { code = _code;}
@@ -39,11 +39,13 @@ public:
     friend std::ostream & operator<<(std::ostream & out,const MessageResultJudge & msgBuf);
 private:
     judgeResult_id code;//执行的结果
+    std::string key; // 根据请的数据,生成的key
     std::string msg; //
     std::vector<result> Results; //结果信
 };
 
 std::ostream & operator<<(std::ostream & out,const MessageResultJudge & msgBuf){
+    out << "key: " << msgBuf.key<< "\n";
     out << "code : " << msgBuf.code << "\n";
     out << "msg: " << msgBuf.msg<< "\n";
     out << "Results size : " << msgBuf.Results.size() << "\n";
@@ -63,6 +65,7 @@ std::ostream & operator<<(std::ostream & out,const MessageResultJudge & msgBuf){
 MessageBuffer MessageResultJudge::dumps(){
     MessageBuffer ret;
     ret.push_back(code);
+    ret.appendMessge(key);
     ret.appendMessge(msg);
     ret.push_back(Results.size());
     for (const auto& e : Results) {
@@ -87,6 +90,7 @@ MessageBuffer MessageResultJudge::dumps(){
 void MessageResultJudge::loads(std::string_view str){
     int cur = 0;
     code = (judgeResult_id)MessageBuffer::dumpsMessageFromStr<int>(str.data(),cur);
+    key = MessageBuffer::dumpsMessageFromStr<std::string>(str.data(),cur);
     msg = MessageBuffer::dumpsMessageFromStr<std::string>(str.data(),cur);
     int size =MessageBuffer::dumpsMessageFromStr<int>(str.data(),cur);
     for(int i=1;i<=size;++i){

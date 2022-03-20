@@ -18,6 +18,9 @@ include_directories(src)
 aux_source_directory(. DIR_SRCS)
 
 
+set(USER_CONFIG_PATH "${PROJECT_SOURCE_DIR}/USER_CONFIG.hpp")
+add_compile_options(-include ${USER_CONFIG_PATH})
+
 # 查找当前目录下的所有源文件
 # 并将名称保存到 DIR_SRCS 变量
 add_executable(server server.cpp)

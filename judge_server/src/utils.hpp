@@ -17,10 +17,8 @@ void show_hex_code(T&& obj){
     for (const auto& e : obj) {
         std::cout << std::hex << (e & 0xff)  << " ";
     }
-    
     std::cout  << "\n";
     std::cout.flags(save);
-
 }
 
 inline bool iequal(std::string_view s1,std::string_view s2) {

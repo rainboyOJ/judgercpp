@@ -19,6 +19,7 @@
 #include "judgeQueue.hpp"
 #include "Result.hpp"
 #include "utils.hpp"
+#include "Problem.hpp"
 
 
 
@@ -142,7 +143,7 @@ void judgeWorkPool::write_message(int fd,MessageResultJudge& msg){
 }
 /*
  * 一: 准备阶段
- *      是否是支持的评语
+ *      是否是支持的语言
  *      查找题目的位置,判断题目是否存在,并返回题目的相关信息
  *      创建评测的文件夹
  *      写入代码
@@ -150,10 +151,27 @@ void judgeWorkPool::write_message(int fd,MessageResultJudge& msg){
  *      写入评测队列,进入评测阶段
  */
 void judgeWorkPool::work_stage1(judge_Queue_node &jn){
-    if( is_sport_language(jn.language) == false){
-        MessageResultJudge res(jn.key,judgeResult_id::INVALID_CONFIG,std::string("unsupport language : ") + jn.language);
-        write_message(jn.fd, res);
-        return;
+    try {
+        //1 是否是支持的语言
+        if( is_sport_language(jn.language) == false){
+            MessageResultJudge res(jn.key,judgeResult_id::INVALID_CONFIG,std::string("unsupport language : ") + jn.language);
+            write_message(jn.fd, res);
+            return;
+        }
+        if( jn.problem_path.length() == 0){
+            Problem p(__CONFIG::BASE_PROBLEM_PATH,jn.pid);
+            //for (const auto& e : p.input_data) {
+                //std::cout << e.first<< " " << e.second << std::endl;
+            //}
+            //for (const auto& e : p.output_data) {
+                //std::cout << e.first<< " " << e.second << std::endl;
+            //}
+        }
+        else
+            Problem p(jn.problem_path);
+    }
+    catch(std::exception & e){
+        std::cerr << " Exception : " << e.what() << "\n";
     }
 }
 

@@ -2,6 +2,8 @@
 
 #include <string>
 
+#define UNLIMITED 0
+
 enum {
     SUCCESS             = 0,
     INVALID_CONFIG      = -1,
@@ -50,3 +52,26 @@ struct result {
     int error;
     int result;
 };
+
+//// 程序比较运行需要的变量
+
+struct config {
+    uint32_t    max_cpu_time{UNLIMITED};
+    uint32_t    max_real_time{UNLIMITED};
+    uint32_t    max_process_number{UNLIMITED};
+    bool        memory_limit_check_only{false}; //只检查内存使用，不加以限制，默认为False
+    uint64_t    max_output_size{UNLIMITED};
+    uint64_t    max_memory{UNLIMITED};
+    uint64_t    max_stack{UNLIMITED};
+    std::string cwd;
+    std::string exe_path{"1"};
+    std::string input_path{"/dev/stdin"};
+    std::string output_path{"/dev/stdout"};
+    std::string error_path{"/dev/stderr"};
+    std::vector<std::string> args{};
+    std::vector<std::string> env{};
+    std::string log_path{"judger_log.txt"};
+    std::string seccomp_rule_name;
+    uint32_t     uid{65534};
+    uint32_t     gid{65534};
+} CONFIG;

@@ -220,6 +220,8 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
 
         // 5 评测,依次评测
         auto Lang =  string_to_lang(jn.language);
+
+        MessageResultJudge sendALLmsg(jn.key,judgeResult_id::SUCCESS,"all");
         for (int i = 0 ;i< p.input_data.size() ; ++i) {
             auto & in_file  = std::get<std::string>(p.input_data[i]);
             auto & out_file = std::get<std::string>(p.output_data[i]);
@@ -228,8 +230,18 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
             auto judgeArgs = getJudgeArgs(Lang, work_path, code_name, in_file, user_out_file, jn.timeLimit , jn.memoryLimit);
             //auto res = __judger(judgeArgs);
             auto res = Judge(judgeArgs, user_out_file);
+
+            MessageResultJudge sendmsg(jn.key,judgeResult_id::SUCCESS,std::to_string(i));
+            sendmsg.push_back(res);
+            sendALLmsg.push_back(res);
+
             print_result(res);
+            //MessageResultJudge
+            write_message(jn.fd, sendmsg);
+
         }
+        write_message(jn.fd, sendALLmsg);
+
     }
     catch(std::exception & e){
         std::cerr << " Exception : " << e.what() << "\n";

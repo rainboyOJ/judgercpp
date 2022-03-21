@@ -36,6 +36,9 @@ public:
     int exit_code, int error, int result) {
         Results.push_back({cpu_time,real_time,memory,signal,exit_code,error,result});
     }
+
+    void push_back(result & res) { Results.push_back(res); }
+
     friend std::ostream & operator<<(std::ostream & out,const MessageResultJudge & msgBuf);
 private:
     judgeResult_id code;//执行的结果

@@ -15,7 +15,8 @@ set(CMAKE_CXX_FLAGS "-std=c++17")
 
 # 添加代码
 include_directories(src)
-aux_source_directory(. DIR_SRCS)
+include_directories(lib)
+aux_source_directory(src DIR_SRCS)
 
 
 set(USER_CONFIG_PATH "${PROJECT_SOURCE_DIR}/USER_CONFIG.hpp")
@@ -23,6 +24,6 @@ add_compile_options(-include ${USER_CONFIG_PATH})
 
 # 查找当前目录下的所有源文件
 # 并将名称保存到 DIR_SRCS 变量
-add_executable(server server.cpp)
-add_executable(client client.cpp)
+add_executable(server server.cpp ${DIR_SRCS})
+add_executable(client client.cpp ${DIR_SRCS})
 

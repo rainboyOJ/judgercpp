@@ -22,7 +22,6 @@
 #include "Problem.hpp"
 
 
-
 class judgeWorkPool {
 public:
     //默认4个线程
@@ -43,6 +42,24 @@ public:
         //bool ret = judge_Queue::get().enque(jn);
         //if( ret ) _task_cv.notify_one(); //唤醒一个
         //return ret;
+    }
+
+
+    // 评测
+    result __judger(judge_args&& args){
+        std::stringstream ss;
+        //log("参数",(judge_bin + static_cast<std::string>(args)).c_str() );
+        //std::cout << std::endl ;
+        exec( ( std::string(__CONFIG::judger_bin) + static_cast<std::string>(args)).c_str() ,ss);
+        result RESULT;
+        ss >> RESULT.cpu_time;
+        ss >> RESULT.real_time;
+        ss >> RESULT.memory;
+        ss >> RESULT.signal;
+        ss >> RESULT.exit_code;
+        ss >> RESULT.error;
+        ss >> RESULT.result;
+        return RESULT;
     }
 
     /**
@@ -158,6 +175,7 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
             write_message(jn.fd, res);
             return;
         }
+        //2 查找题目的位置,判断题目是否存在,并返回题目的相关信息
         if( jn.problem_path.length() == 0){
             Problem p(__CONFIG::BASE_PROBLEM_PATH,jn.pid);
             //for (const auto& e : p.input_data) {
@@ -169,6 +187,19 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
         }
         else
             Problem p(jn.problem_path);
+        //3 创建评测的文件夹 写入代码
+        std::string uuid = UUID(); //生成uuid
+        std::cout << "uuid " << uuid << std::endl;
+        auto work_path = fs::path(__CONFIG::BASE_WORK_PATH) / uuid;
+        std::filesystem::create_directories(work_path);
+
+        const std::string code_name  = "main.code"; // 代码名
+
+        auto code_path = work_path / code_name ;
+        writeFile(code_path.c_str(), jn.code);
+        //std::cout << "uuid " << uuid << std::endl;
+        // 4 编译
+        result res = __judger(compile_CPP_args(work_path, code_name));
     }
     catch(std::exception & e){
         std::cerr << " Exception : " << e.what() << "\n";

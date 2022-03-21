@@ -110,3 +110,20 @@ void exec(const char* cmd,std::ostream& __out) {
     pclose(pipe);
     //return result;
 }
+
+
+
+// 文件夹RAII
+
+struct directoryRAII {
+    directoryRAII(fs::path &_p) 
+        : __p{_p}
+    { //创建dir
+        std::filesystem::create_directories(_p);
+    }
+    ~directoryRAII() { // dele dir
+        std::filesystem::remove_all(__p); // Deletes one or more files recursively.
+    }
+
+    fs::path __p;
+};

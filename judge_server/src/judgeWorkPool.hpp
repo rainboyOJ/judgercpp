@@ -198,7 +198,10 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
         std::string uuid = UUID(); //生成uuid
         std::cout << "uuid " << uuid << std::endl;
         auto work_path = fs::path(__CONFIG::BASE_WORK_PATH) / uuid;
-        std::filesystem::create_directories(work_path);
+
+        //std::filesystem::create_directories(work_path);
+        directoryRAII dirRaii(work_path);
+
 
         const std::string code_name  = "main.code"; // 代码名
 

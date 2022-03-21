@@ -73,6 +73,16 @@ struct result {
     int result;
 };
 
+#define __print_result(node,RESULT) std::cout << std::setw(12) << #node ": " << RESULT.node <<'\n';
+#define print_result(RESULT)\
+    __print_result(cpu_time,RESULT);\
+    __print_result(real_time,RESULT);\
+    __print_result(memory,RESULT);\
+    __print_result(signal,RESULT);\
+    __print_result(exit_code,RESULT);\
+    __print_result(error,RESULT);\
+    __print_result(result,RESULT);
+
 
 std::string_view result_to_string(RESULT_MEAN mean) {
     using namespace std::literals;

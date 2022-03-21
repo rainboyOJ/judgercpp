@@ -51,6 +51,21 @@ create_compile_args(PY3)
 create_compile_args(CPP)
 
 
+#define create_judge_name(name) struct judge_##name##_args: public judge_args {\
+        judge_##name##_args() = delete;\
+        explicit judge_##name##_args(const fs::path cwd,\
+                std::string_view code_name,\
+                std::string_view in_file_fullpath,\
+                std::string_view out_file,\
+                std::size_t __time, /* ms*/ std::size_t __memory /* mb */);\
+    };
+
+//py3的评测
+create_judge_name(PY3)
+//py3的评测
+create_judge_name(CPP)
+
+
 //========================== 实现
 
 judge_args::judge_args(
@@ -63,7 +78,7 @@ judge_args::judge_args(
             : max_cpu_time{max_cpu_time},
             max_real_time{max_real_time},
             max_process_number{max_process_number},
-            max_memory{max_memory},
+            max_memory{max_memory == unlimit ? unlimit :  max_memory + __CONFIG::memory_base}, //加上基础内存
             max_stack{max_stack},
             max_output_size{max_output_size},
             seccomp_rule_name{std::move(seccomp_rule_name)},
@@ -135,3 +150,59 @@ compile_CPP_args::compile_CPP_args (const fs::path& cwd,std::string_view code_na
             args = {"-x","c++" ,"-o",fs::path(code_name).stem(),std::string(code_name)};
             env = {"PATH=/usr/bin"};
         }
+
+
+
+judge_PY3_args::judge_PY3_args(const fs::path cwd,
+                std::string_view code_name,
+                std::string_view in_file,
+                std::string_view out_file,
+                std::size_t __time, /* ms*/ std::size_t __memory /* mb */)
+            :judge_args(
+                    __time,10*__time,10,__memory*(1ull<<30),512_MB,512_MB,
+                    "null", //不使用sec
+                    cwd,
+                    in_file,    /*input_path*/
+                    cwd/out_file,
+                    cwd/"judge_error",
+                    cwd/"judge_log",
+                    "/usr/bin/python3",
+                    0,0) { 
+                //log("judge_PY3_args",in_file);
+                args = {cwd/code_name};
+                env = {"PATH=/usr/bin"};
+            }
+
+
+judge_CPP_args::judge_CPP_args(const fs::path cwd,
+                std::string_view code_name,
+                std::string_view in_file,
+                std::string_view out_file,
+                std::size_t __time, /* ms*/ std::size_t __memory /* mb */)
+            :judge_args(
+                    __time,10*__time,10,__memory*(1ull<<30),512_MB,512_MB,
+                    "null", //不使用sec
+                    cwd,
+                    in_file,    /*input_path*/
+                    cwd/out_file,
+                    cwd/"judge_error",
+                    cwd/"judge_log",
+                    fs::path(code_name).stem(),
+                    0,0) { 
+                //args = {};
+                env = {"PATH=/usr/bin"};
+            }
+
+
+//根据语言得到评测的参数
+judge_args getJudgeArgs(SUPORT_LANG lang,const fs::path& cwd,
+        std::string_view code_name,
+        std::string_view in_file_fullpath, //完整路径
+        std::string_view out_file, //只要名字
+        std::size_t __time, /* ms*/ std::size_t __memory /* mb */)
+{
+    switch(lang){
+        case SUPORT_LANG::PY3:      return judge_PY3_args(cwd,code_name,in_file_fullpath,out_file,__time,__memory);
+        case SUPORT_LANG::CPP:      return judge_CPP_args(cwd,code_name,in_file_fullpath,out_file,__time,__memory);
+    }
+}

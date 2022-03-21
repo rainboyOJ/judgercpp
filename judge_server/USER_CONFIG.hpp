@@ -15,4 +15,5 @@ struct __CONFIG {
 
     //judger 的位置
     static constexpr std::string_view judger_bin = "/usr/bin/judger_core";
+    static constexpr std::size_t memory_base = 16*1024*1024; // 16mb
 };

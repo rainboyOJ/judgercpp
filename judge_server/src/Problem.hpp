@@ -8,7 +8,20 @@
  * @desc 路径,子id
  */
 struct Problem {
-    Problem()=delete;
+    Problem() = default;
+    Problem(Problem && p)
+        : input_data{std::move(p.input_data)},
+        output_data{std::move(p.output_data)}
+    {}
+
+    Problem& operator= (Problem && p) 
+    {
+
+        input_data = std::move(p.input_data);
+        output_data = std::move(p.output_data);
+        return *this;
+    }
+
     explicit Problem(const fs::path& p_path){
         //auto p_path = fs::path(path);
         if(not fs::exists(p_path) )

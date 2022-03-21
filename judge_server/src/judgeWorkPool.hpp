@@ -20,6 +20,7 @@
 #include "Result.hpp"
 #include "utils.hpp"
 #include "Problem.hpp"
+#include "check.hpp"
 
 
 class judgeWorkPool {
@@ -46,7 +47,7 @@ public:
 
 
     // 评测
-    result __judger(judge_args&& args){
+    result __judger(judge_args& args){
         std::stringstream ss;
         //log("参数",(judge_bin + static_cast<std::string>(args)).c_str() );
         //std::cout << std::endl ;
@@ -61,6 +62,11 @@ public:
         ss >> RESULT.result;
         return RESULT;
     }
+
+    std::tuple<bool,std::string> Compile(judge_args& args);     //编译
+    //std::tuple<bool,result>      
+    // out_file 输出的文件路径
+    result Judge(judge_args& args,std::string_view out_file);       //评测
 
     /**
      * 写message
@@ -165,7 +171,7 @@ void judgeWorkPool::write_message(int fd,MessageResultJudge& msg){
  *      创建评测的文件夹
  *      写入代码
  *      编译
- *      写入评测队列,进入评测阶段
+ *      进入评测阶段
  */
 void judgeWorkPool::work_stage1(judge_Queue_node &jn){
     try {
@@ -176,8 +182,9 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
             return;
         }
         //2 查找题目的位置,判断题目是否存在,并返回题目的相关信息
+        Problem p;
         if( jn.problem_path.length() == 0){
-            Problem p(__CONFIG::BASE_PROBLEM_PATH,jn.pid);
+            p = Problem(__CONFIG::BASE_PROBLEM_PATH,jn.pid);
             //for (const auto& e : p.input_data) {
                 //std::cout << e.first<< " " << e.second << std::endl;
             //}
@@ -186,7 +193,7 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
             //}
         }
         else
-            Problem p(jn.problem_path);
+            p = Problem(jn.problem_path);
         //3 创建评测的文件夹 写入代码
         std::string uuid = UUID(); //生成uuid
         std::cout << "uuid " << uuid << std::endl;
@@ -199,7 +206,30 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
         writeFile(code_path.c_str(), jn.code);
         //std::cout << "uuid " << uuid << std::endl;
         // 4 编译
-        result res = __judger(compile_CPP_args(work_path, code_name));
+        auto compile_args = compile_CPP_args(work_path, code_name);
+        result res = __judger(compile_args);
+        if( res.result !=0 || res.error != 0  || res.exit_code != 0 ){
+            std::string msg = readFile(compile_args.error_path.c_str());
+            if( msg.length() == 0)
+                msg =  readFile(compile_args.log_path.c_str());
+            //return std::make_tuple(STATUS::COMPILE_ERROR,msg, std::vector<result> {});
+            MessageResultJudge res(jn.key,judgeResult_id::COMPILE_FAIL,msg);
+            write_message(jn.fd, res);
+            return;
+        }
+
+        // 5 评测,依次评测
+        auto Lang =  string_to_lang(jn.language);
+        for (int i = 0 ;i< p.input_data.size() ; ++i) {
+            auto & in_file  = std::get<std::string>(p.input_data[i]);
+            auto & out_file = std::get<std::string>(p.output_data[i]);
+
+            std::string user_out_file = std::to_string(i) + ".out";
+            auto judgeArgs = getJudgeArgs(Lang, work_path, code_name, in_file, user_out_file, jn.timeLimit , jn.memoryLimit);
+            //auto res = __judger(judgeArgs);
+            auto res = Judge(judgeArgs, user_out_file);
+            print_result(res);
+        }
     }
     catch(std::exception & e){
         std::cerr << " Exception : " << e.what() << "\n";
@@ -211,3 +241,27 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
 void judgeWorkPool::work_stage2(judge_Queue_node &jn){
 }
 
+result    judgeWorkPool::Judge(judge_args& args,std::string_view out_file)       //评测
+{
+    auto res = __judger(args);
+    if( res.error != 0  || res.result !=0){ //有错误,超时,超内存等等
+        //return std::make_tuple(true,res) ; 
+        return  res;
+    }
+    else  {
+        //查检memory
+        if( args.max_memory != unlimit && res.memory >= args.max_memory - __CONFIG::memory_base){ // 减去基础内存
+            res.result = MEMORY_LIMIT_EXCEEDED;
+        }
+        else {
+            //res.result = MEMORY_LIMIT_EXCEEDED;
+            //答案检查
+            //log_one(args.output_path);
+            //log_one(out_file);
+            if( !cyaron::Check::noipstyle_check(args.output_path.c_str(), out_file) ){
+                res.result = WRONG_ANSWER;
+            }
+        }
+        return res;
+    }
+}

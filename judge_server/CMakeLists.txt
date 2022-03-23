@@ -26,9 +26,14 @@ include_directories(src)
 include_directories(lib)
 aux_source_directory(src DIR_SRCS)
 
-
-set(USER_CONFIG_PATH "${PROJECT_SOURCE_DIR}/USER_CONFIG.hpp")
-add_compile_options(-include ${USER_CONFIG_PATH})
+if(EXISTS ${JUDGE_SERVER_USER_CONFIG_PATH})
+    message(STATUS "JUDGE_SERVER 使用用户的配置文件 ${JUDGE_SERVER_USER_CONFIG_PATH}")
+    add_definitions(-D USE_JUDGE_SERVER_USER_CONFIG)
+    add_compile_options(-include ${JUDGE_SERVER_USER_CONFIG_PATH})
+else()
+    message(STATUS "使用默认配置文件 ${PROJECT_SOURCE_DIR}/DEFAULT_CONFIG.hpp")
+    add_compile_options(-include ${PROJECT_SOURCE_DIR}/DEFAULT_CONFIG.hpp)
+endif(EXISTS ${JUDGE_SERVER_USER_CONFIG_PATH})
 
 
 # 查找当前目录下的所有源文件

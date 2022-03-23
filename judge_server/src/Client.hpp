@@ -141,10 +141,10 @@ while(this->runing.load()){
                             show_hex_code(readStr);
                             MessageResultJudge msg_res;
                             msg_res.loads(readStr);
-                            //__handle(msg_res); //处理数据
-#ifdef JUDGE_SERVER_DEBUG
-                            std::cout << msg_res << std::endl;
-#endif
+                            __handle(msg_res); //处理数据
+//#ifdef JUDGE_SERVER_DEBUG
+                            //std::cout << msg_res << std::endl;
+//#endif
                         }
 
                     }

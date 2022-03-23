@@ -153,6 +153,7 @@ void judgeWorkPool::judgeWork(){
 #endif
             work_stage1(jn);
         }
+        // 因为设计的问题不出现state::JUDGING这个状态
         else if (jn.stage == JUDGE_STAGE::JUDGING ) {
             std::cout << "stage 2" << std::endl; work_stage2(jn);
         }

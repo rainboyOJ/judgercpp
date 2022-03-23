@@ -2,12 +2,15 @@
 
 #include <fstream>
 
+// 折叠表达式
 template<char Delimiter = ' ',typename... Args>
 void debug_out(std::ostream &os, Args&&... args){
     ( (os << args << Delimiter),... ) <<std::endl;
 }
 
-//TODO log
+/**
+ * @desc 输出信息到文件用
+ */
 struct LOG {
     //LOG() = delete;
     //LOG(const char * file_name) 
@@ -24,12 +27,8 @@ struct LOG {
     std::ofstream ofs;
 } __LOG__;
 
-
-
-
-#define LOG_INIT(arg)   __LOG__.init(arg)
+#define LOG_INIT(arg)        __LOG__.init(arg)
 #define log_write( TAG, ...) __LOG__.write(TAG,"[at Function]:",__FUNCTION__,"[at LINE]:",__LINE__,';',__VA_ARGS__)
-//TODO
 #define log_error(...)     log_write("[ERROR]",__VA_ARGS__)
 #define log_waring(...)    log_write("[WARNING]",__VA_ARGS__)
 #define log_fatal(...)     log_write("[FATAL]",__VA_ARGS__)

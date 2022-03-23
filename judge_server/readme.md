@@ -50,3 +50,7 @@ src
     make
     ./server
     ```
+
+## 使用方式
+
+客户端,具体看`client.cpp`

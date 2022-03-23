@@ -19,11 +19,13 @@ int main(int argc,char * argv[]){
 
 int main(){
     
-    Client myclient(4);
+    Client myclient(4); //与服务器建立4个连接
 
+    //返回信息的处理函数
     myclient.set_result_handle([](MessageResultJudge & res){
                 std::cout << res << std::endl;
             });
+    //发送评测数据
     myclient.send("test key"
             ,codeAplusB
             ,"cpp"

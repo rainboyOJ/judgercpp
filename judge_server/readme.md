@@ -45,6 +45,8 @@ src
     ```
     mkdir build && cd build
     cmake ...
+    # 如果想开启Debug(会输出调试信息到屏幕)
+    # cmake -DJUDGE_SERVER_DEBUG=ON
     make
     ./server
     ```

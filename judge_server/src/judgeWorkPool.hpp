@@ -131,20 +131,26 @@ void judgeWorkPool::judgeWork(){
             std::unique_lock<std::mutex> lck(mtx);
             while( q.empty() )//队列为空,就挂起
             {
+#ifdef JUDGE_SERVER_DEBUG
                 std::cout << "go wait" << std::endl;
+#endif
                 _task_cv.wait(lck); 
             }
             jn = q.front();
             q.pop_front();
         }
+#ifdef JUDGE_SERVER_DEBUG
         std::cout << "de judge queue succ" << std::endl;
         std::cout << jn.fd << std::endl;
         std::cout << jn.key << std::endl;
         std::cout << jn.code << std::endl;
         std::cout << jn.language << std::endl;
         std::cout << jn.pid << std::endl;
+#endif
         if( jn.stage == JUDGE_STAGE::PREPARE){
+#ifdef JUDGE_SERVER_DEBUG
             std::cout << "stage 1" << std::endl;
+#endif
             work_stage1(jn);
         }
         else if (jn.stage == JUDGE_STAGE::JUDGING ) {
@@ -157,11 +163,15 @@ void judgeWorkPool::judgeWork(){
 void judgeWorkPool::write_message(int fd,MessageResultJudge& msg){
     socketManagerRAII smra(fd);
     auto str = msg.dumps().to_string();
+
+#ifdef JUDGE_SERVER_DEBUG
     std::cout << msg << std::endl;
     show_hex_code(msg.dumps());
     std::cout << str << std::endl;
     show_hex_code(str);
     std::cout << "fd : "<< fd << std::endl;
+#endif
+
     socketBase::TcpWrite(fd,str.c_str(),str.length());
 }
 /*
@@ -196,7 +206,9 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
             p = Problem(jn.problem_path);
         //3 创建评测的文件夹 写入代码
         std::string uuid = UUID(); //生成uuid
+#ifdef JUDGE_SERVER_DEBUG
         std::cout << "uuid " << uuid << std::endl;
+#endif
         auto work_path = fs::path(__CONFIG::BASE_WORK_PATH) / uuid;
 
         //std::filesystem::create_directories(work_path);
@@ -238,7 +250,9 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
             sendmsg.push_back(res);
             sendALLmsg.push_back(res);
 
+#ifdef JUDGE_SERVER_DEBUG
             print_result(res);
+#endif
             //MessageResultJudge
             write_message(jn.fd, sendmsg);
 

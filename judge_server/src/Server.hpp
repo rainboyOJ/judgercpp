@@ -39,7 +39,10 @@ public:
     ~Server() {  Close();};
     void run();
     void Close(){
+
+#ifdef JUDGE_SERVER_DEBUG
         std::cout << "Close" << std::endl;
+#endif
         if(server_sockfd !=-1) close(server_sockfd);
         if(client_sockfd !=-1) close(client_sockfd);
     }
@@ -84,7 +87,9 @@ void Server::addsig(int sig, void(handler)(int), bool restart)
 
 void Server::sig_handler_wrapper(int sig){
     //为保证函数的可重入性，保留原来的errno
+#ifdef JUDGE_SERVER_DEBUG
     std::cout << "sig_handler_wrapper " << sig  << std::endl;
+#endif
     //runing.store(false);
     //int save_errno = errno;
     //int msg = sig;
@@ -182,7 +187,9 @@ void Server::run(){
                     FD_SET(client_sockfd, &readfds);//将客户端socket加入到集合中
                     socketManager::Instance().insert(client_sockfd);
                     //printf("adding client on fd %d\n", client_sockfd);
+#ifdef JUDGE_SERVER_DEBUG
                     std::cout << "adding client on fd " << client_sockfd << std::endl;
+#endif
                 }
                 //else if( fd == m_socket_pipe[0]) { //有信号过来
                     ////读取信号
@@ -222,12 +229,11 @@ void Server::run(){
                         MessageSendJudge msgj;
                         msgj.loads(readStr);
 
+#ifdef JUDGE_SERVER_DEBUG
                         std::cout << "read content is : "  << std::endl;
-                        //std::cout <<  readStr << std::endl;
                         std::cout << msgj << std::endl;
-                        //加入workpool
-
                         std::cout << "fd : " << fd << std::endl;
+#endif
                         
                         workPool.enque(std::move(msgj), fd);
 
@@ -238,7 +244,6 @@ void Server::run(){
                         //auto msg_res_dumps = msg_res.dumps();
                         //show_hex_code(msg_res_dumps);
                         //TcpWrite(fd, msg_res_dumps.data(), msg_res_dumps.size());
-                        
                     }
                 }
             }

@@ -84,14 +84,21 @@ private:
 Client::Client(std::size_t connect_size,int port)
     :connect_size{connect_size}, port(port)
 {
+
+#ifdef JUDGE_SERVER_DEBUG
     std::cout << port << std::endl;
+#endif
     FD_ZERO(&fdset);  //清空读的集合
     for(int i =0;i < connect_size ;i++){
         int sockfd=socket(AF_INET,SOCK_STREAM,0);
+#ifdef JUDGE_SERVER_DEBUG
         std::cout << sockfd << std::endl;
+#endif
         if (sockfd < 0) 
         { 
+#ifdef JUDGE_SERVER_DEBUG
             std::cout <<"socket() failed.\n";
+#endif
             return;
         }
 
@@ -134,7 +141,9 @@ while(this->runing.load()){
                             MessageResultJudge msg_res;
                             msg_res.loads(readStr);
                             //__handle(msg_res); //处理数据
+#ifdef JUDGE_SERVER_DEBUG
                             std::cout << msg_res << std::endl;
+#endif
                         }
 
                     }
@@ -146,13 +155,21 @@ while(this->runing.load()){
 
 void Client::Connect(int sockfd) {
     int result= connect(sockfd, (struct sockaddr *)&servaddr,sizeof(servaddr));
+#ifdef JUDGE_SERVER_DEBUG
     std::cout << result << std::endl;
+#endif
     if ( result == -1)
     {
         char msg[2048] = {0};
         sprintf(msg,"connect(%s:%d) failed.\n","127.0.0.1",port); close(sockfd);  
+#ifdef JUDGE_SERVER_DEBUG
         std::cout << msg << std::endl;
-        return; } std::cout << "connect ok" << std::endl;
+#endif
+        return; 
+    } 
+#ifdef JUDGE_SERVER_DEBUG
+    std::cout << "connect ok" << std::endl;
+#endif
     connected = true;
 }
 
@@ -171,7 +188,9 @@ void Client::send(
     {
         int fd  = -1;
         if (connect_size <= 0 ){
+#ifdef JUDGE_SERVER_DEBUG
             std::cout  << "LINE: "<< __LINE__ << "connect_size <= 0 "  << std::endl;
+#endif
             return;
         }
         socketManagerRAII smRa;

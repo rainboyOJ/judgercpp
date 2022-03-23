@@ -7,6 +7,14 @@ project(judgeServer)
 # 指定编译flag
 set(CMAKE_CXX_FLAGS "-std=c++17")
 
+# 选项
+option(JUDGE_SERVER_DEBUG "是否开启debug" OFF)
+if(JUDGE_SERVER_DEBUG)
+    add_definitions(-DJUDGE_SERVER_DEBUG)
+endif(JUDGE_SERVER_DEBUG)
+
+
+
 # 设置宏
 #add_definitions(-D DEBUG)
 
@@ -21,6 +29,7 @@ aux_source_directory(src DIR_SRCS)
 
 set(USER_CONFIG_PATH "${PROJECT_SOURCE_DIR}/USER_CONFIG.hpp")
 add_compile_options(-include ${USER_CONFIG_PATH})
+
 
 # 查找当前目录下的所有源文件
 # 并将名称保存到 DIR_SRCS 变量

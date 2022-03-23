@@ -16,12 +16,14 @@
 
 template<typename T>
 void show_hex_code(T&& obj){
+#ifdef  JUDGE_SERVER_DEBUG
     std::ios_base::fmtflags save = std::cout.flags();
     for (const auto& e : obj) {
         std::cout << std::hex << (e & 0xff)  << " ";
     }
     std::cout  << "\n";
     std::cout.flags(save);
+#endif
 }
 
 inline bool iequal(std::string_view s1,std::string_view s2) {

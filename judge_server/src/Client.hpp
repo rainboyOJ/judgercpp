@@ -31,7 +31,7 @@ using result_handler = std::function<void(MessageResultJudge &)>;
 
 class Client :public socketBase{
 public:
-    explicit Client(std::size_t connect_size,int port = 9000);
+    explicit Client(std::size_t connect_size,std::string_view judge_server_ip,int port = 9000);
     ~Client(){
         runing.store(false);
         for( int i = 0 ;i < connect_size;i++){
@@ -79,10 +79,11 @@ private:
     std::thread Recv_th; //接收信息的线程
     fd_set fdset;
     std::atomic_bool runing;
+    std::string judge_server_ip;
 };
 
-Client::Client(std::size_t connect_size,int port)
-    :connect_size{connect_size}, port(port)
+Client::Client(std::size_t connect_size,std::string_view judge_server_ip,int port)
+    :connect_size{connect_size}, port(port),judge_server_ip{judge_server_ip}
 {
 
 #ifdef JUDGE_SERVER_DEBUG

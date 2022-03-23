@@ -19,7 +19,11 @@ int main(int argc,char * argv[]){
 
 int main(){
     
-    Client myclient(4); //与服务器建立4个连接
+
+    // args1 与服务器建立4个连接
+    // args2 judge_server ip
+    // args3  judge_server port
+    Client myclient(4,"127.0.0.1",9000); 
 
     //返回信息的处理函数
     myclient.set_result_handle([](MessageResultJudge & res){

@@ -141,3 +141,15 @@ struct directoryRAII {
 
     fs::path __p;
 };
+
+
+/**
+ * /a/b/c -> c
+ */
+std::string_view getBaseName(std::string_view __file__){
+    auto iter =__file__.begin(); 
+    for( auto it = __file__.begin() ; it < __file__.end() ; ++it){
+        if( *it == '/') iter = it;
+    }
+    return std::string_view(iter+1,__file__.end()-iter);
+}

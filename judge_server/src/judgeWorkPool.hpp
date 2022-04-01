@@ -182,6 +182,7 @@ void judgeWorkPool::write_message(int fd,MessageResultJudge& msg){
  *      创建评测的文件夹
  *      写入代码
  *      编译
+        // 4.5 发送测试点的相关信息
  *      进入评测阶段
  */
 void judgeWorkPool::work_stage1(judge_Queue_node &jn){
@@ -233,6 +234,13 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
             write_message(jn.fd, res);
             return;
         }
+        // 4.5 发送测试点的相关信息
+        {
+            // 所有测试点的数量
+            const std::string msg = "allSize:";
+            MessageResultJudge sendMsg(jn.key,judgeResult_id::SUCCESS,msg+ std::to_string(p.input_data.size()));
+            write_message(jn.fd, sendMsg);
+        }
 
         // 5 评测,依次评测
         auto Lang =  string_to_lang(jn.language);
@@ -247,7 +255,11 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
             //auto res = __judger(judgeArgs);
             auto res = Judge(judgeArgs, user_out_file);
 
-            MessageResultJudge sendmsg(jn.key,judgeResult_id::SUCCESS,std::to_string(i));
+            std::ostringstream oss;
+            oss << i << ","; //测试点的编号
+            oss << getBaseName(in_file) << "," << getBaseName(out_file); //输入输出的名字
+            MessageResultJudge sendmsg(jn.key,judgeResult_id::SUCCESS,oss.str());
+
             sendmsg.push_back(res);
             sendALLmsg.push_back(res);
 

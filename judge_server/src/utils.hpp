@@ -151,5 +151,5 @@ std::string_view getBaseName(std::string_view __file__){
     for( auto it = __file__.begin() ; it < __file__.end() ; ++it){
         if( *it == '/') iter = it;
     }
-    return std::string_view(iter+1,__file__.end()-iter);
+    return std::string_view(iter+1,__file__.end()-iter-1);
 }

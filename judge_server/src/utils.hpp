@@ -10,7 +10,7 @@
 #include <cassert>
 #include <fstream>
 
-#include "sole.hpp"
+#include "../lib/sole.hpp"
 
 #include "define.hpp"
 

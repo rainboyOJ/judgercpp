@@ -23,7 +23,7 @@ endif(JUDGE_SERVER_DEBUG)
 
 # 添加代码
 include_directories(src)
-include_directories(lib)
+#include_directories(lib)
 aux_source_directory(src DIR_SRCS)
 
 if(EXISTS ${JUDGE_SERVER_USER_CONFIG_PATH})

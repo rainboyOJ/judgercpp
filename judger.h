@@ -20,7 +20,9 @@ enum {
 };
 
 enum RESULT_MEAN {
+    WAIT                     = -2,
     WRONG_ANSWER             = -1,
+    ACCEPT                   = 0,
     CPU_TIME_LIMIT_EXCEEDED  = 1,
     REAL_TIME_LIMIT_EXCEEDED = 2,
     MEMORY_LIMIT_EXCEEDED    = 3,

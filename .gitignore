@@ -32,3 +32,5 @@
 *.app
 judger
 build/
+judge_core
+judger_core

@@ -1,10 +1,11 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #define UNLIMITED 0
 
-enum {
+enum judgeResult_id {
     SUCCESS             = 0,
     INVALID_CONFIG      = -1,
     FORK_FAILED         = -2,
@@ -16,7 +17,8 @@ enum {
     DUP2_FAILED         = -8,
     SETUID_FAILED       = -9,
     EXECVE_FAILED       = -10,
-    SPJ_ERROR           = -11
+    SPJ_ERROR           = -11,
+    COMPILE_FAIL        = -12 // TODO
 };
 
 enum RESULT_MEAN {
@@ -38,10 +40,17 @@ const std::string __mean__[5]{
     "SYSTEM_ERROR"
 };
 
-std::string result_to_string(RESULT_MEAN mean) {
-    if( mean >= RESULT_MEAN::CPU_TIME_LIMIT_EXCEEDED and mean <= RESULT_MEAN::SYSTEM_ERROR)
-        return __mean__[mean-1];
-    return "WRONG_ANSWER";
+std::string_view result_to_string(RESULT_MEAN mean) {
+    using namespace std::literals;
+    switch(mean){
+        case WRONG_ANSWER:              return "WRONG_ANSWER"sv;
+        case CPU_TIME_LIMIT_EXCEEDED:   return "CPU_TIME_LIMIT_EXCEEDED"sv;
+        case REAL_TIME_LIMIT_EXCEEDED:  return "REAL_TIME_LIMIT_EXCEEDED"sv;
+        case MEMORY_LIMIT_EXCEEDED:     return "MEMORY_LIMIT_EXCEEDED"sv;
+        case RUNTIME_ERROR:             return "RUNTIME_ERROR"sv;
+        case SYSTEM_ERROR:              return "SYSTEM_ERROR"sv;
+        default:    return "UNKOWN"sv;
+    }
 }
 
 // 存结果 POD

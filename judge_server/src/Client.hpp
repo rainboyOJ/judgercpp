@@ -39,7 +39,7 @@ public:
                 int sockfd = -1;
                 //q.try_dequeue(sockfd);
                 socketManager::Instance().removeAll();
-                for (auto& fd : sockfd_vec) close(fd);
+                for (auto& fd : sockfd_vec) ::close(fd);
             }
         }
         Recv_th.join();
@@ -162,7 +162,7 @@ void Client::Connect(int sockfd) {
     if ( result == -1)
     {
         char msg[2048] = {0};
-        sprintf(msg,"connect(%s:%d) failed.\n","127.0.0.1",port); close(sockfd);  
+        sprintf(msg,"connect(%s:%d) failed.\n","127.0.0.1",port); ::close(sockfd);  
 #ifdef JUDGE_SERVER_DEBUG
         std::cout << msg << std::endl;
 #endif

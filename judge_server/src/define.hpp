@@ -7,7 +7,7 @@ using namespace std::literals;
 namespace fs = std::filesystem;
 
 using ull = unsigned long long;
-constexpr ull operator ""_MB(ull a){
+constexpr ull operator ""__MB(ull a){
     return a*1024*1024*1024;
 }
 

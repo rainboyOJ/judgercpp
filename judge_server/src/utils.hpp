@@ -9,8 +9,9 @@
 #include <signal.h>
 #include <cassert>
 #include <fstream>
+#include <thread>
 
-#include "../lib/sole.hpp"
+//#include "../lib/sole.hpp"
 
 #include "define.hpp"
 
@@ -56,9 +57,20 @@ inline bool is_sport_language(std::string_view lang){
 }
 
 
-//
+template <typename I> 
+std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
+    static const char* digits = "0123456789ABCDEF";
+    std::string rc(hex_len,'0');
+    for (size_t i=0, j=(hex_len-1)*4 ; i<hex_len; ++i,j-=4)
+        rc[i] = digits[(w>>j) & 0x0f];
+    return rc;
+}
+
 std::string UUID(){
-    return sole::uuid0().str();
+    std::size_t h1 = std::hash<std::size_t>{}(std::chrono::system_clock::now().time_since_epoch().count() );
+    std::size_t h2 = std::hash<std::thread::id>{}(std::this_thread::get_id());
+    //return sole::uuid0().str();
+    return n2hexstr(h1 ^ h2);
 }
 
 

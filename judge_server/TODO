@@ -1,1 +1,2 @@
-为什么client 没有立刻退出?
+- [x] 为什么client 没有立刻退出?
+- [ ] 完善Debug,不简单的使用cout

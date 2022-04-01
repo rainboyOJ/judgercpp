@@ -159,7 +159,7 @@ judge_PY3_args::judge_PY3_args(const fs::path cwd,
                 std::string_view out_file,
                 std::size_t __time, /* ms*/ std::size_t __memory /* mb */)
             :judge_args(
-                    __time,10*__time,10,__memory*(1ull<<30),512_MB,512_MB,
+                    __time,10*__time,10,__memory*(1ull<<30),512__MB,512__MB,
                     "null", //不使用sec
                     cwd,
                     in_file,    /*input_path*/
@@ -180,7 +180,7 @@ judge_CPP_args::judge_CPP_args(const fs::path cwd,
                 std::string_view out_file,
                 std::size_t __time, /* ms*/ std::size_t __memory /* mb */)
             :judge_args(
-                    __time,10*__time,10,__memory*(1ull<<30),512_MB,512_MB,
+                    __time,10*__time,10,__memory*(1ull<<30),512__MB,512__MB,
                     "null", //不使用sec
                     cwd,
                     in_file,    /*input_path*/

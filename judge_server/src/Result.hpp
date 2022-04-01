@@ -40,6 +40,20 @@ public:
     void push_back(result & res) { Results.push_back(res); }
 
     friend std::ostream & operator<<(std::ostream & out,const MessageResultJudge & msgBuf);
+
+    auto get_code()            { return code; }
+    std::string_view get_key() { return key; }
+    std::string_view get_msg() { return msg; }
+    std::size_t results_size() { return Results.size();}
+
+    auto begin() const {
+        return Results.begin();
+    }
+
+    auto end() const {
+        return Results.end();
+    }
+
 private:
     judgeResult_id code;//执行的结果
     std::string key; // 根据请的数据,生成的key

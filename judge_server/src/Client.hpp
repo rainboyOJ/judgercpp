@@ -121,12 +121,18 @@ Client::Client(std::size_t connect_size,std::string_view judge_server_ip,int por
     Recv_th = std::thread([this](){
                 //if(this->__handle == nullptr) return;
 
+
                 struct timeval timeout={10,100}; //select等待1秒，1秒轮询，要非阻塞就置0
 while(this->runing.load()){
 
                 fd_set tmpset = fdset;
-                int result = select(FD_SETSIZE, &tmpset, (fd_set *)0,(fd_set *)0, &timeout); //FD_SETSIZE：系统默认的最大文件描述符
-                if( result <=0) return;
+                //int result = select(FD_SETSIZE, &tmpset, (fd_set *)0,(fd_set *)0, &timeout); //FD_SETSIZE：系统默认的最大文件描述符
+                int result = select(FD_SETSIZE, &tmpset, (fd_set *)0,(fd_set *)0, NULL); //FD_SETSIZE：系统默认的最大文件描述符
+                if( result <=0) {
+                    //std::cout << "no read" << std::endl;
+                    continue;
+                }
+                //std::cout << "yes read" << std::endl;
                 /*扫描所有的文件描述符*/
                 for(int fd = 0; fd < FD_SETSIZE; fd++)
                 {
@@ -138,10 +144,11 @@ while(this->runing.load()){
                             std::string readStr;
                             int read_len;
                             TcpRead(fd, readStr, &read_len);
-                            show_hex_code(readStr);
+                            //show_hex_code(readStr);
                             MessageResultJudge msg_res;
                             msg_res.loads(readStr);
-                            __handle(msg_res); //处理数据
+                            if( __handle != nullptr)
+                                __handle(msg_res); //处理数据
 //#ifdef JUDGE_SERVER_DEBUG
                             //std::cout << msg_res << std::endl;
 //#endif
@@ -194,9 +201,11 @@ void Client::send(
 #endif
             return;
         }
+        std::cout << "socket Manager start.. " << std::endl;
         socketManagerRAII smRa;
         fd = smRa.get();
         //std::cout << "end pick " << sock << std::endl;
         TcpWrite(fd, msg_dumps.data(),msg_dumps.size() );
+        std::cout << "socket Manager end fd : " << fd  << std::endl;
     }
 }

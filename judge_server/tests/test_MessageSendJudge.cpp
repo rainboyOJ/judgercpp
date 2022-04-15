@@ -1,5 +1,5 @@
 /**
- * 没有发送的数据的dump 与 load
+ * 发送的数据的dump 与 load
  */
 
 #include "../src/Send.hpp"

@@ -1,5 +1,5 @@
 /**
- * 没有发送的数据的dump 与 load
+ * 返回的结果数据的dump 与 load
  */
 
 #include <cstdio>

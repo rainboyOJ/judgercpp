@@ -42,7 +42,8 @@ public:
         fd = _fd;
     }
     ~socketManagerRAII(){ 
-        socketManager::Instance().unuse(fd); }
+        socketManager::Instance().unuse(fd); 
+    }
     int get() { return fd; }
 private:
     int fd{-1};

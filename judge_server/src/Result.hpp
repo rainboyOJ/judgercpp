@@ -66,15 +66,27 @@ std::ostream & operator<<(std::ostream & out,const MessageResultJudge & msgBuf){
     out << "code : " << msgBuf.code << "\n";
     out << "msg: " << msgBuf.msg<< "\n";
     out << "Results size : " << msgBuf.Results.size() << "\n";
+    /*
+     *for (int i = 0 ;i < msgBuf.Results.size() ;++i) {
+     *    out << "Result : " << i << "\n";
+     *    out << "    cpu_time  :" << msgBuf.Results[i].cpu_time  << "\n";
+     *    out << "    real_time :" << msgBuf.Results[i].real_time<< "\n";
+     *    out << "    memory    :" << msgBuf.Results[i].memory<< "\n";
+     *    out << "    signal    :" << msgBuf.Results[i].signal<< "\n";
+     *    out << "    exit_code :" << msgBuf.Results[i].exit_code<< "\n";
+     *    out << "    error     :" << msgBuf.Results[i].error<< "\n";
+     *    out << "    result    :" << msgBuf.Results[i].result<< "\n\n";
+     *}
+     */
     for (int i = 0 ;i < msgBuf.Results.size() ;++i) {
-        out << "Result : " << i << "\n";
-        out << "    cpu_time  :" << msgBuf.Results[i].cpu_time  << "\n";
-        out << "    real_time :" << msgBuf.Results[i].real_time<< "\n";
-        out << "    memory    :" << msgBuf.Results[i].memory<< "\n";
-        out << "    signal    :" << msgBuf.Results[i].signal<< "\n";
-        out << "    exit_code :" << msgBuf.Results[i].exit_code<< "\n";
-        out << "    error     :" << msgBuf.Results[i].error<< "\n";
-        out << "    result    :" << msgBuf.Results[i].result<< "\n\n";
+        out << "Result : " << i << " >> \n";
+        out <<  msgBuf.Results[i].cpu_time  << " ";
+        out <<  msgBuf.Results[i].real_time<< " ";
+        out <<  msgBuf.Results[i].memory<< " ";
+        out <<  msgBuf.Results[i].signal<< " ";
+        out <<  msgBuf.Results[i].exit_code<< " ";
+        out <<  msgBuf.Results[i].error<< " ";
+        out <<  msgBuf.Results[i].result<< "\n";
     }
     return out;
 }

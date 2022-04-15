@@ -10,6 +10,7 @@
 #include <cassert>
 #include <fstream>
 #include <thread>
+#include <mutex>
 
 //#include "../lib/sole.hpp"
 
@@ -153,3 +154,19 @@ std::string_view getBaseName(std::string_view __file__){
     }
     return std::string_view(iter+1,__file__.end()-iter-1);
 }
+
+
+/**
+ * 
+ */
+struct miniLog {
+    template<typename... T>
+    static void log(T&&... data ){
+        std::lock_guard<std::mutex> lck(mtx);
+        ((std::cout << data ),...);
+        std::cout << std::endl;
+    };
+    static std::mutex mtx;
+};
+
+std::mutex miniLog::mtx; 

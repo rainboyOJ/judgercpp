@@ -41,7 +41,8 @@ public:
     void Close(){
 
 #ifdef JUDGE_SERVER_DEBUG
-        std::cout << "Close" << std::endl;
+        //std::cout << "Close" << std::endl;
+        miniLog::log("Close Server");
 #endif
         if(server_sockfd !=-1) close(server_sockfd);
         if(client_sockfd !=-1) close(client_sockfd);
@@ -188,7 +189,8 @@ void Server::run(){
                     socketManager::Instance().insert(client_sockfd);
                     //printf("adding client on fd %d\n", client_sockfd);
 #ifdef JUDGE_SERVER_DEBUG
-                    std::cout << "adding client on fd " << client_sockfd << std::endl;
+                    //std::cout << "adding client on fd " << client_sockfd << std::endl;
+                    miniLog::log("adding client on fd : ",client_sockfd);
 #endif
                 }
                 //else if( fd == m_socket_pipe[0]) { //有信号过来
@@ -230,9 +232,10 @@ void Server::run(){
                         msgj.loads(readStr);
 
 #ifdef JUDGE_SERVER_DEBUG
-                        std::cout << "read content is : "  << std::endl;
-                        std::cout << msgj << std::endl;
-                        std::cout << "fd : " << fd << std::endl;
+                        //std::cout << "read content is : "  << std::endl;
+                        //std::cout << msgj << std::endl;
+                        //std::cout << "fd : " << fd << std::endl;
+                        miniLog::log("read content is :\n",msgj,"\n from fd: ",fd);
 #endif
                         
                         workPool.enque(std::move(msgj), fd);

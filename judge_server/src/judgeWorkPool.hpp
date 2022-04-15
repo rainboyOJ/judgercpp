@@ -140,7 +140,7 @@ void judgeWorkPool::judgeWork(){
             q.pop_front();
         }
 #ifdef JUDGE_SERVER_DEBUG
-        std::cout << "de judge queue succ" << std::endl;
+        std::cout << "de judge queue succ :" << std::endl;
         std::cout << jn.fd << std::endl;
         std::cout << jn.key << std::endl;
         std::cout << jn.code << std::endl;
@@ -149,7 +149,7 @@ void judgeWorkPool::judgeWork(){
 #endif
         if( jn.stage == JUDGE_STAGE::PREPARE){
 #ifdef JUDGE_SERVER_DEBUG
-            std::cout << "stage 1" << std::endl;
+            //std::cout << "stage 1" << std::endl;
 #endif
             work_stage1(jn);
         }
@@ -166,11 +166,14 @@ void judgeWorkPool::write_message(int fd,MessageResultJudge& msg){
     auto str = msg.dumps().to_string();
 
 #ifdef JUDGE_SERVER_DEBUG
-    std::cout << msg << std::endl;
-    show_hex_code(msg.dumps());
-    std::cout << str << std::endl;
-    show_hex_code(str);
-    std::cout << "fd : "<< fd << std::endl;
+    //std::cout << "fd : "<< fd << std::endl;
+    miniLog::log("fd : ",fd);
+    miniLog::log("send msg: " , msg);
+    
+    //std::cout << msg << std::endl;
+    //show_hex_code(msg.dumps());
+    //std::cout << str << std::endl;
+    //show_hex_code(str);
 #endif
 
     socketBase::TcpWrite(fd,str.c_str(),str.length());
@@ -264,7 +267,7 @@ void judgeWorkPool::work_stage1(judge_Queue_node &jn){
             sendALLmsg.push_back(res);
 
 #ifdef JUDGE_SERVER_DEBUG
-            print_result(res);
+            //print_result(res);
 #endif
             //MessageResultJudge
             write_message(jn.fd, sendmsg);
